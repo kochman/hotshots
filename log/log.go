@@ -42,29 +42,17 @@ func contextFields(lvl ...int) Fields {
 	if len(lvl) == 1 {
 		level = lvl[0]
 	}
-	pc, file, line, _ := runtime.Caller(level)
+	_, file, line, _ := runtime.Caller(level)
 	_, fileName := path.Split(file)
-	parts := strings.Split(runtime.FuncForPC(pc).Name(), ".")
-	pl := len(parts)
-	packageName := ""
 
-	if len(parts) >= 0 && pl-2 < len(parts) {
-		if parts[pl-2][0] == '(' {
-			packageName = strings.Join(parts[0:pl-2], ".")
-		} else {
-			packageName = strings.Join(parts[0:pl-1], ".")
-		}
-
-		pkgs := strings.Split(packageName, "/hotshots/")
-		if len(pkgs) > 1 {
-			packageName = pkgs[1]
-		}
+	pkgs := strings.Split(file, "/hotshots/")
+	if len(pkgs) > 1 {
+		fileName = pkgs[1]
 	}
 
 	return Fields{
-		"package": packageName,
-		"file":    fileName,
-		"line":    line,
+		"file": fileName,
+		"line": line,
 	}
 }
 

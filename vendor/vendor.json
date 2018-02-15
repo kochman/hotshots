@@ -7,6 +7,24 @@
 			"path": "github.com/go-chi/chi",
 			"revision": "e83ac2304db3c50cf03d96a2fcd39009d458bc35",
 			"revisionTime": "2017-12-22T16:11:33Z"
+		},
+		{
+			"checksumSHA1": "40vJyUB4ezQSn/NSadsKEOrudMc=",
+			"path": "github.com/inconshreveable/mousetrap",
+			"revision": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75",
+			"revisionTime": "2014-10-17T20:07:13Z"
+		},
+		{
+			"checksumSHA1": "bk8AIaMyTeY7CW85Zg2HDrZVSo0=",
+			"path": "github.com/spf13/cobra",
+			"revision": "fd32f09af19efc9b1279c54e0d8ed23f66232a15",
+			"revisionTime": "2018-02-08T21:34:46Z"
+		},
+		{
+			"checksumSHA1": "OJsSYyzbBLtTqWayX2cvg/zI68o=",
+			"path": "github.com/spf13/pflag",
+			"revision": "6a877ebacf28c5fc79846f4fcd380a5d9872b997",
+			"revisionTime": "2018-02-08T21:53:15Z"
 		}
 	],
 	"rootPath": "github.com/kochman/hotshots"
