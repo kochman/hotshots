@@ -130,8 +130,7 @@ func NotFound(w http.ResponseWriter, r *http.Request){
 		Error: "Requested URI not found",
 		URI: r.RequestURI,
 	}
-	js, err := json.Marshal(v)
-	WriteJsonResponse(js, err, w)
+	WriteJsonResponse(v, w)
 }
 
 func CanAccessDirectory(serv *Server) bool {
@@ -156,8 +155,7 @@ func (s *Server) GetPhotos(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Photos: photos,
 	}
-	js, err := json.Marshal(v)
-	WriteJsonResponse(js, err, w)
+	WriteJsonResponse(v, w)
 }
 
 func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
@@ -220,8 +218,7 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		NewID: id,
 	}
-	js, err := json.Marshal(v)
-	WriteJsonResponse(js, err, w)
+	WriteJsonResponse(v, w)
 }
 
 func (s *Server) GetPhotoMetadata(w http.ResponseWriter, r *http.Request) {
@@ -229,8 +226,7 @@ func (s *Server) GetPhotoMetadata(w http.ResponseWriter, r *http.Request) {
 		Photo: r.Context().Value("photo").(Photo),
 		Success: true,
 	}
-	js, err := json.Marshal(v)
-	WriteJsonResponse(js, err, w)
+	WriteJsonResponse(v, w)
 }
 
 func (s *Server) GetPhoto(w http.ResponseWriter, r *http.Request) {
@@ -242,6 +238,7 @@ func (s *Server) GetPhoto(w http.ResponseWriter, r *http.Request) {
 		WriteError("Unable to access internal storage of image", 500, w)
 		return
 	}
+	defer output.Close()
 
 	w.Header().Set("Content-Type", "image/jpeg")
 	if _, err := io.Copy(w, output); err != nil {
@@ -280,11 +277,11 @@ func WriteError(s string, status int, w http.ResponseWriter){
 		Success: false,
 		Error: s,
 	}
-	js, err := json.Marshal(v)
-	WriteJsonResponse(js, err, w)
+	WriteJsonResponse(v, w)
 }
 
-func WriteJsonResponse(js []byte, err error, w http.ResponseWriter) {
+func WriteJsonResponse(v interface{}, w http.ResponseWriter) {
+	js, err := json.Marshal(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
