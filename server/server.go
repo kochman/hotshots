@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"image/jpeg"
 	"net/http"
 	"os"
 	"path"
@@ -16,12 +17,16 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/kochman/hotshots/config"
 	"github.com/kochman/hotshots/log"
+	"github.com/nfnt/resize"
 	"golang.org/x/sys/unix"
 )
 
 /*
  * Constants
  */
+
+const MaxWidth = 256
+const MaxHeight = 256
 
 /*
  * Server struct
@@ -88,7 +93,7 @@ func New(cfg *config.Config) (*Server, error) {
 		router.Route("/{pid}", func(router chi.Router) {
 			router.Use(s.PhotoCtx)
 			router.Get("/image.jpg", s.GetPhoto)
-			// router.Get("/thumb.jpg")
+			router.Get("/thumb.jpg", s.GetThumbnail)
 			router.Get("/meta", s.GetPhotoMetadata)
 		})
 	})
@@ -175,9 +180,22 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	photor, photow := io.Pipe()
+	thumbr, thumbw := io.Pipe()
+
+	go func(){
+		defer input.Close()
+		defer photow.Close()
+		defer thumbw.Close()
+
+		mw := io.MultiWriter(photow, thumbw)
+
+		io.Copy(mw, input)
+	}()
+
 	var existingPhoto Photo
 	if err := s.db.One("ID", id, &existingPhoto); err == nil {
-		log.Info(err)
+		log.Info(fmt.Sprintf("Photo %s already exists", id))
 		WriteError("Photo already exists", 400, w)
 		return
 	} else if err != storm.ErrNotFound {
@@ -186,19 +204,31 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photoPath := path.Join(s.cfg.ImgFolder(), fmt.Sprintf("%s.jpg", id))
-	log.Info(fmt.Sprint("Saving image ", photoPath))
-	output, err := os.OpenFile(photoPath, os.O_WRONLY|os.O_CREATE, 0660)
-	if err != nil{
-		log.Error(err)
-		WriteError("Unable to write to output file", 500, w)
-		return
-	}
-	defer output.Close()
+	saveErr := make(chan error)
+	defer close(saveErr)
 
-	if _, err := io.Copy(output, input); err != nil {
-		log.Error(err)
-		WriteError("Unable to copy input to output file", 500, w)
+	photoPath := path.Join(s.cfg.ImgFolder(), fmt.Sprintf("%s.jpg", id))
+	thumbPath := path.Join(s.cfg.ImgFolder(), fmt.Sprintf("%s-thumb.jpg", id))
+
+	log.Info(fmt.Sprint("Saving image ", id))
+	go SaveImage(photor, photoPath, saveErr)
+	go SaveThumb(thumbr, thumbPath, saveErr)
+
+	wasErrorSaving := false
+	for saveProcesses := 0; saveProcesses < 2; saveProcesses++ {
+		err := <- saveErr
+		if err != nil {
+			wasErrorSaving = true
+		}
+	}
+	log.Info(fmt.Sprint("Finished saving image ", id))
+
+	if wasErrorSaving {
+		log.Error("Failed to save image")
+		WriteError("Unable to save image", 500, w)
+
+		os.Remove(photoPath)
+		os.Remove(thumbPath)
 		return
 	}
 
@@ -210,7 +240,9 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 	if err := s.db.Save(&newPhoto); err != nil {
 		log.Error(err)
 		WriteError("Unable to save to database", 500, w)
+
 		os.Remove(photoPath)
+		os.Remove(thumbPath)
 		return
 	}
 
@@ -221,6 +253,44 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 	WriteJsonResponse(v, w)
 }
 
+func SaveImage(data io.ReadCloser, path string, saveErr chan error){
+	defer data.Close()
+	output, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0660)
+	if err != nil{
+		saveErr <- err
+		return
+	}
+	defer output.Close()
+
+	if _, err := io.Copy(output, data); err != nil {
+		saveErr <- err
+		return
+	}
+
+	saveErr <- nil
+}
+
+func SaveThumb(data io.ReadCloser, path string, saveErr chan error){
+	defer data.Close()
+	img, err := jpeg.Decode(data)
+	if err != nil{
+		saveErr <- err
+		return
+	}
+
+	resizedImg := resize.Thumbnail(MaxWidth, MaxHeight, img, resize.Bicubic)
+	output, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0660)
+	if err != nil{
+		saveErr <- err
+		return
+	}
+	defer output.Close()
+
+	jpeg.Encode(output, resizedImg, nil)
+	saveErr <- nil
+}
+
+
 func (s *Server) GetPhotoMetadata(w http.ResponseWriter, r *http.Request) {
 	v := GetPhotoMetadataResponse{
 		Photo: r.Context().Value("photo").(Photo),
@@ -230,8 +300,16 @@ func (s *Server) GetPhotoMetadata(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetPhoto(w http.ResponseWriter, r *http.Request) {
+	s.GetImage("%s.jpg", w, r)
+}
+
+func (s *Server) GetThumbnail(w http.ResponseWriter, r *http.Request) {
+	s.GetImage("%s-thumb.jpg", w, r)
+}
+
+func (s *Server) GetImage(imageFormat string, w http.ResponseWriter, r *http.Request){
 	photo := r.Context().Value("photo").(Photo)
-	photoPath := path.Join(s.cfg.ImgFolder(), fmt.Sprintf("%s.jpg", photo.ID))
+	photoPath := path.Join(s.cfg.ImgFolder(), fmt.Sprintf(imageFormat, photo.ID))
 	output, err := os.OpenFile(photoPath, os.O_RDONLY, 0660)
 	if err != nil {
 		log.Error(err)
