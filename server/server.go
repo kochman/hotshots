@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/sha1"
 	"encoding/json"
 	"errors"
@@ -16,7 +17,6 @@ import (
 	"github.com/kochman/hotshots/config"
 	"github.com/kochman/hotshots/log"
 	"golang.org/x/sys/unix"
-	"context"
 )
 
 /*
@@ -242,6 +242,8 @@ func (s *Server) GetPhoto(w http.ResponseWriter, r *http.Request) {
 		WriteError("Unable to access internal storage of image", 500, w)
 		return
 	}
+
+	w.Header().Set("Content-Type", "image/jpeg")
 	if _, err := io.Copy(w, output); err != nil {
 		log.Error(err)
 		WriteError("Unable to return image data", 500, w)
