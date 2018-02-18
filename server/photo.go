@@ -80,9 +80,9 @@ func NewPhoto(id string, r image.Rectangle, x exif.Exif) *Photo{
 		Megapixels: mp,
 		Lat:		lat,
 		Long:		long,
-		CamSerial:	strings.TrimSuffix(string(cserial.Val), "\u0001"),
-		CamMake:	strings.TrimSuffix(string(cmake.Val), "\u0001"),
-		CamModel:	strings.TrimSuffix(string(cmodel.Val), "\u0001"),
+		CamSerial:	strings.TrimSuffix(string(cserial.Val), "\u0000"),
+		CamMake:	strings.TrimSuffix(string(cmake.Val), "\u0000"),
+		CamModel:	strings.TrimSuffix(string(cmodel.Val), "\u0000"),
 	}
 }
 
