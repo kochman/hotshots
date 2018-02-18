@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"image"
 	"io"
 	"net/http"
 	"os"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/asdine/storm"
 	"github.com/kochman/hotshots/log"
-	"github.com/rwcarlsen/goexif/exif"
 	"github.com/go-chi/chi"
 )
 
@@ -141,51 +139,11 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saveErr := make(chan error)
-	defer close(saveErr)
-
 	photoPath := path.Join(s.cfg.ImgFolder(), fmt.Sprintf("%s.jpg", id))
 	thumbPath := path.Join(s.cfg.ImgFolder(), fmt.Sprintf("%s-thumb.jpg", id))
 
-	photor, photow := io.Pipe()
-	thumbr, thumbw := io.Pipe()
-	exifr, exifw := io.Pipe()
-	defer photor.Close()
-	defer thumbr.Close()
-	defer exifr.Close()
-
-	go func() {
-		defer photow.Close()
-		defer thumbw.Close()
-		defer exifw.Close()
-
-		mw := io.MultiWriter(photow, thumbw, exifw)
-
-		if _, err := io.Copy(mw, input); err != nil {
-			log.Error(err)
-			return
-		}
-
-	}()
-
-	log.Info(fmt.Sprint("Saving image ", id))
-
-	var xif exif.Exif
-	var rect image.Rectangle
-	go SaveImage(photor, photoPath, saveErr)
-	go SaveThumb(&rect, thumbr, thumbPath, saveErr)
-	go GetExif(&xif, exifr, saveErr)
-
-	wasErrorSaving := false
-	for saveProcesses := 0; saveProcesses < 3; saveProcesses++ {
-		err := <-saveErr
-		if err != nil {
-			log.Error(err)
-			wasErrorSaving = true
-		}
-	}
-
-	if wasErrorSaving {
+	xif, rect, err := ProcessPhoto(input, id, photoPath, thumbPath)
+	if err != nil {
 		log.Error("Failed to save image")
 		WriteError("Unable to save image", 500, w)
 
@@ -194,7 +152,7 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newPhoto := NewPhoto(id, rect, xif)
+	newPhoto := NewPhoto(id, *rect, *xif)
 
 	if err := s.db.Save(newPhoto); err != nil {
 		log.Error(err)

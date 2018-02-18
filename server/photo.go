@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -84,6 +85,55 @@ func NewPhoto(id string, r image.Rectangle, x exif.Exif) *Photo{
 		CamMake:	strings.TrimSuffix(string(cmake.Val), "\u0000"),
 		CamModel:	strings.TrimSuffix(string(cmodel.Val), "\u0000"),
 	}
+}
+
+func ProcessPhoto (input io.Reader, id string, photoPath string, thumbPath string) (*exif.Exif, *image.Rectangle, error){
+	saveErr := make(chan error)
+	defer close(saveErr)
+
+	photor, photow := io.Pipe()
+	thumbr, thumbw := io.Pipe()
+	exifr, exifw := io.Pipe()
+	defer photor.Close()
+	defer thumbr.Close()
+	defer exifr.Close()
+
+	go func() {
+		defer photow.Close()
+		defer thumbw.Close()
+		defer exifw.Close()
+
+		mw := io.MultiWriter(photow, thumbw, exifw)
+
+		if _, err := io.Copy(mw, input); err != nil {
+			log.Error(err)
+			return
+		}
+
+	}()
+
+	log.Info(fmt.Sprint("Saving image ", id))
+
+	var xif exif.Exif
+	var rect image.Rectangle
+	go SaveImage(photor, photoPath, saveErr)
+	go SaveThumb(&rect, thumbr, thumbPath, saveErr)
+	go GetExif(&xif, exifr, saveErr)
+
+	wasErrorSaving := false
+	for saveProcesses := 0; saveProcesses < 3; saveProcesses++ {
+		err := <-saveErr
+		if err != nil {
+			log.Error(err)
+			wasErrorSaving = true
+		}
+	}
+
+	if wasErrorSaving {
+		return nil, nil, errors.New("Unable to complete one of the photo processes")
+	}
+
+	return &xif, &rect, nil
 }
 
 func SaveImage(data io.Reader, path string, saveErr chan error) {
