@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nfnt/resize"
 	"github.com/kochman/hotshots/log"
+	"github.com/nfnt/resize"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
 )
@@ -30,21 +30,20 @@ const MaxHeight = 256
  */
 
 type Photo struct {
-	ID			string    `storm:"id"`
-	UploadedAt	time.Time `storm:"index"`
-	TakenAt		time.Time `storm:"index"`
-	Width		int       `storm:"index"`
-	Height		int       `storm:"index"`
-	Megapixels	float64   `storm:"index"`
-	Lat			float64
-	Long		float64
-	CamSerial	string    `storm:"index"`
-	CamMake		string    `storm:"index"`
-	CamModel	string    `storm:"index"`
+	ID         string    `storm:"id"`
+	UploadedAt time.Time `storm:"index"`
+	TakenAt    time.Time `storm:"index"`
+	Width      int       `storm:"index"`
+	Height     int       `storm:"index"`
+	Megapixels float64   `storm:"index"`
+	Lat        float64
+	Long       float64
+	CamSerial  string `storm:"index"`
+	CamMake    string `storm:"index"`
+	CamModel   string `storm:"index"`
 }
 
-
-func NewPhoto(id string, r image.Rectangle, x exif.Exif) *Photo{
+func NewPhoto(id string, r image.Rectangle, x exif.Exif) *Photo {
 	taken, err := x.DateTime()
 	if err != nil {
 		log.Error("Unable to find time for ", id)
@@ -70,24 +69,24 @@ func NewPhoto(id string, r image.Rectangle, x exif.Exif) *Photo{
 		log.Info("Unable to find model for ", id)
 	}
 
-	mp := toFixed(float64(r.Dx()) * float64(r.Dy()) / 1000000.0, 1)
+	mp := toFixed(float64(r.Dx())*float64(r.Dy())/1000000.0, 1)
 
 	return &Photo{
 		ID:         id,
 		UploadedAt: time.Now(),
-		TakenAt:	taken,
-		Width:		r.Dx(),
-		Height:		r.Dy(),
+		TakenAt:    taken,
+		Width:      r.Dx(),
+		Height:     r.Dy(),
 		Megapixels: mp,
-		Lat:		lat,
-		Long:		long,
-		CamSerial:	strings.TrimSuffix(string(cserial.Val), "\u0000"),
-		CamMake:	strings.TrimSuffix(string(cmake.Val), "\u0000"),
-		CamModel:	strings.TrimSuffix(string(cmodel.Val), "\u0000"),
+		Lat:        lat,
+		Long:       long,
+		CamSerial:  strings.TrimSuffix(string(cserial.Val), "\u0000"),
+		CamMake:    strings.TrimSuffix(string(cmake.Val), "\u0000"),
+		CamModel:   strings.TrimSuffix(string(cmodel.Val), "\u0000"),
 	}
 }
 
-func ProcessPhoto (input io.Reader, id string, photoPath string, thumbPath string) (*exif.Exif, *image.Rectangle, error){
+func ProcessPhoto(input io.Reader, id string, photoPath string, thumbPath string) (*exif.Exif, *image.Rectangle, error) {
 	saveErr := make(chan error)
 	defer close(saveErr)
 
@@ -189,7 +188,6 @@ func GetExif(out *exif.Exif, data io.Reader, saveErr chan error) {
 
 	saveErr <- nil
 }
-
 
 func GenPhotoID(f io.ReadSeeker) (string, error) {
 	digest := sha1.New()

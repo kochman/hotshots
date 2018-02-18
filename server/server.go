@@ -24,7 +24,6 @@ type Server struct {
 	handler http.Handler
 }
 
-
 func New(cfg *config.Config) (*Server, error) {
 	s := &Server{
 		cfg: *cfg,
@@ -89,7 +88,6 @@ func CanAccessDirectory(serv *Server) bool {
 	writeErr := unix.Access(serv.cfg.PhotosDirectory, unix.W_OK)
 	return readErr == nil && writeErr == nil
 }
-
 
 func (s *Server) Run() {
 	if err := http.ListenAndServe(s.cfg.ListenURL, s.handler); err != nil {

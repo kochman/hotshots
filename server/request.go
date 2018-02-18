@@ -9,8 +9,8 @@ import (
 	"path"
 
 	"github.com/asdine/storm"
-	"github.com/kochman/hotshots/log"
 	"github.com/go-chi/chi"
+	"github.com/kochman/hotshots/log"
 )
 
 /*
@@ -105,7 +105,7 @@ func (s *Server) GetPhotoIDs(w http.ResponseWriter, r *http.Request) {
 
 	v := GetPhotoIDsResponse{
 		Success: true,
-		IDs: ids,
+		IDs:     ids,
 	}
 	WriteJsonResponse(v, w)
 }
