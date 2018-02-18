@@ -37,6 +37,7 @@ func New(cfg *config.Config) (*Server, error) {
 	router := chi.NewRouter()
 	router.NotFound(NotFound)
 	router.Route("/photos", func(router chi.Router) {
+		router.Get("/ids", s.GetPhotoIDs)
 		router.Get("/", s.GetPhotos)
 		router.Post("/", s.PostPhoto)
 		router.Route("/{pid}", func(router chi.Router) {

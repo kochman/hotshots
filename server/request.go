@@ -19,6 +19,11 @@ import (
  * Response Structs
  */
 
+type GetPhotoIDsResponse struct {
+	Success bool
+	IDs     []string
+}
+
 type GetPhotosResponse struct {
 	Success bool
 	Photos  []Photo
@@ -84,6 +89,25 @@ func (s *Server) GetPhotos(w http.ResponseWriter, r *http.Request) {
 	v := GetPhotosResponse{
 		Success: true,
 		Photos:  photos,
+	}
+	WriteJsonResponse(v, w)
+}
+
+func (s *Server) GetPhotoIDs(w http.ResponseWriter, r *http.Request) {
+	var photos []Photo
+	if err := s.db.All(&photos); err != nil {
+		log.Error(err)
+		WriteError("Unable to query photos", 500, w)
+		return
+	}
+	ids := make([]string, len(photos))
+	for i, photo := range photos {
+		ids[i] = photo.ID
+	}
+
+	v := GetPhotoIDsResponse{
+		Success: true,
+		IDs: ids,
 	}
 	WriteJsonResponse(v, w)
 }
