@@ -3,6 +3,48 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "203+irJgy8JuQ66lCQXIFyhEe6A=",
+			"path": "github.com/asdine/storm",
+			"revision": "68fc73b635f890fe7ba2f3b15ce80c85b28a744f",
+			"revisionTime": "2018-01-06T14:43:59Z"
+		},
+		{
+			"checksumSHA1": "KXHP3AdJVnDxab4J2mDknFi8SPQ=",
+			"path": "github.com/asdine/storm/codec",
+			"revision": "68fc73b635f890fe7ba2f3b15ce80c85b28a744f",
+			"revisionTime": "2018-01-06T14:43:59Z"
+		},
+		{
+			"checksumSHA1": "8B9a1JXYnmmzo353mN/z9MgKa2M=",
+			"path": "github.com/asdine/storm/codec/json",
+			"revision": "68fc73b635f890fe7ba2f3b15ce80c85b28a744f",
+			"revisionTime": "2018-01-06T14:43:59Z"
+		},
+		{
+			"checksumSHA1": "UohCA0ZSk6DO4wYTORS0NE58j1w=",
+			"path": "github.com/asdine/storm/index",
+			"revision": "68fc73b635f890fe7ba2f3b15ce80c85b28a744f",
+			"revisionTime": "2018-01-06T14:43:59Z"
+		},
+		{
+			"checksumSHA1": "9EciDShF1A0nvE8x6FRw5Re9kzo=",
+			"path": "github.com/asdine/storm/internal",
+			"revision": "68fc73b635f890fe7ba2f3b15ce80c85b28a744f",
+			"revisionTime": "2018-01-06T14:43:59Z"
+		},
+		{
+			"checksumSHA1": "xMrnqVXOk2L7vjtsMYfE73n+tKM=",
+			"path": "github.com/asdine/storm/q",
+			"revision": "68fc73b635f890fe7ba2f3b15ce80c85b28a744f",
+			"revisionTime": "2018-01-06T14:43:59Z"
+		},
+		{
+			"checksumSHA1": "GeAYaNTJ/DTk2MGuzXHUAArWLD0=",
+			"path": "github.com/coreos/bbolt",
+			"revision": "b44cfbde695bad1a19cc09cf00ffb217ce98f038",
+			"revisionTime": "2018-02-14T19:29:54Z"
+		},
+		{
 			"checksumSHA1": "YODbzvhUr0Tzp2/MkXflXph2hdY=",
 			"path": "github.com/go-chi/chi",
 			"revision": "e83ac2304db3c50cf03d96a2fcd39009d458bc35",
@@ -15,6 +57,42 @@
 			"revisionTime": "2014-10-17T20:07:13Z"
 		},
 		{
+			"checksumSHA1": "apvoHcksrwebj02FX32DEURlzlE=",
+			"path": "github.com/kochman/runner",
+			"revision": "307fc031d7792ec0c307f69a1d360c6f37650a7f",
+			"revisionTime": "2017-08-14T05:04:56Z"
+		},
+		{
+			"checksumSHA1": "r5eQHkttko6kxroDEENXbmXKrSs=",
+			"path": "github.com/nfnt/resize",
+			"revision": "891127d8d1b52734debe1b3c3d7e747502b6c366",
+			"revisionTime": "2016-07-24T20:39:20Z"
+		},
+		{
+			"checksumSHA1": "Q68FxXX04PtPDIG7C1RlSDhx/ko=",
+			"path": "github.com/rwcarlsen/goexif/exif",
+			"revision": "17202558c8d9c3fd047859f1a5e73fd9ae709187",
+			"revisionTime": "2018-01-10T18:11:40Z"
+		},
+		{
+			"checksumSHA1": "smHMy/7tOLNYD7ghqesrqslA6Jg=",
+			"path": "github.com/rwcarlsen/goexif/mknote",
+			"revision": "17202558c8d9c3fd047859f1a5e73fd9ae709187",
+			"revisionTime": "2018-01-10T18:11:40Z"
+		},
+		{
+			"checksumSHA1": "0+tTLlssYWyGuq+vQs4IiPIXJW4=",
+			"path": "github.com/rwcarlsen/goexif/tiff",
+			"revision": "17202558c8d9c3fd047859f1a5e73fd9ae709187",
+			"revisionTime": "2018-01-10T18:11:40Z"
+		},
+		{
+			"checksumSHA1": "9y/iQh3/YtX31wAu7eJravtjTro=",
+			"path": "github.com/sirupsen/logrus",
+			"revision": "8c0189d9f6bbf301e5d055d34268156b317016af",
+			"revisionTime": "2018-02-13T14:31:10Z"
+		},
+		{
 			"checksumSHA1": "bk8AIaMyTeY7CW85Zg2HDrZVSo0=",
 			"path": "github.com/spf13/cobra",
 			"revision": "fd32f09af19efc9b1279c54e0d8ed23f66232a15",
@@ -25,6 +103,24 @@
 			"path": "github.com/spf13/pflag",
 			"revision": "6a877ebacf28c5fc79846f4fcd380a5d9872b997",
 			"revisionTime": "2018-02-08T21:53:15Z"
+		},
+		{
+			"checksumSHA1": "6U7dCaxxIMjf5V02iWgyAwppczw=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "650f4a345ab4e5b245a3034b110ebc7299e68186",
+			"revisionTime": "2017-09-27T09:16:38Z"
+		},
+		{
+			"checksumSHA1": "osb18zDjd7/RMAMUuN3qP+w0ewE=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "37707fdb30a5b38865cfb95e5aab41707daec7fd",
+			"revisionTime": "2018-02-02T13:35:31Z"
+		},
+		{
+			"checksumSHA1": "eQq+ZoTWPjyizS9XalhZwfGjQao=",
+			"path": "golang.org/x/sys/windows",
+			"revision": "37707fdb30a5b38865cfb95e5aab41707daec7fd",
+			"revisionTime": "2018-02-02T13:35:31Z"
 		}
 	],
 	"rootPath": "github.com/kochman/hotshots"
