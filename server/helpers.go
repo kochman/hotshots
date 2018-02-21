@@ -2,11 +2,12 @@ package server
 
 import (
 	"encoding/json"
-	"github.com/asdine/storm"
-	"github.com/asdine/storm/index"
 	"math"
 	"net/http"
 	"strconv"
+
+	"github.com/asdine/storm"
+	"github.com/asdine/storm/index"
 )
 
 func round(num float64) int {
