@@ -1,5 +1,6 @@
 package config
 
+import "os"
 import "path"
 
 type Config struct {
@@ -8,10 +9,17 @@ type Config struct {
 }
 
 func New() (*Config, error) {
-	return &Config{
+	c := &Config{
 		ListenURL:       "127.0.0.1:8000",
 		PhotosDirectory: "/var/hotshots",
-	}, nil
+	}
+
+	dir, ok := os.LookupEnv("HOTSHOTS_DIR")
+	if ok {
+		c.PhotosDirectory = dir
+	}
+
+	return c, nil
 }
 
 func (c *Config) ImgFolder() string {
