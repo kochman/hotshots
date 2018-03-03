@@ -100,7 +100,7 @@ func (p *Photo) AddMetadata(r *image.Rectangle, x *exif.Exif) {
 
 func (p *Photo) UpdateStatus(status Status) {
 	p.Status = status
-	p.UploadedAt = time.Now()
+	p.StatusUpdatedAt = time.Now()
 }
 
 func ProcessPhoto(input io.Reader, id string, photoPath string, thumbPath string) (*exif.Exif, *image.Rectangle, error) {
@@ -228,11 +228,11 @@ func GenPhotoID(f io.ReadSeeker) (string, error) {
 func (s *Status) String() string {
 	switch *s {
 	case Processing:
-		return "\"processing\""
+		return "processing"
 	case ProcessingSucceeded:
-		return "\"processing succeeded\""
+		return "processing succeeded"
 	case ProcessingFailed:
-		return "\"processing failed\""
+		return "processing failed"
 	default:
 		return ""
 	}
@@ -240,23 +240,27 @@ func (s *Status) String() string {
 
 func ToStatus(s string) Status {
 	switch s {
-	case "\"processing\"":
+	case "processing":
 		return Processing
-	case "\"processing succeeded\"":
+	case "processing succeeded":
 		return ProcessingSucceeded
-	case "\"processing failed\"":
+	case "processing failed":
 		return ProcessingFailed
 	default:
 		return 255
 	}
 }
 
-func (s *Status) MarshalJSON() ([]byte, error) {
-	return []byte(s.String()), nil
+func (s Status) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
 }
 
 func (s *Status) UnmarshalJSON(b []byte) error {
-	*s = ToStatus(string(b[:]))
+	var str string
+	if err := json.Unmarshal(b, &str); err != nil{
+		return new(json.InvalidUnmarshalError)
+	}
+	*s = ToStatus(str)
 	if *s == 255 {
 		return new(json.InvalidUnmarshalError)
 	}
