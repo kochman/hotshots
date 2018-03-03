@@ -177,7 +177,6 @@ func SaveThumb(r chan *image.Rectangle, data io.Reader, path string, wg *sync.Wa
 	}
 	rect := img.Bounds()
 	r <- &rect
-	log.Info("Sent RECT")
 	resizedImg := resize.Thumbnail(MaxWidth, MaxHeight, img, resize.Bicubic)
 	output, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0660)
 	if err != nil {
@@ -205,7 +204,6 @@ func GetExif(out chan *exif.Exif, data io.Reader, wg *sync.WaitGroup, errs chan 
 		return
 	}
 	out <- x
-	log.Info("Sent EXIF")
 
 	wg.Done()
 }
