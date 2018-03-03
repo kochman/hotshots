@@ -31,7 +31,7 @@ type GetPhotosResponse struct {
 type PostPhotoResponse struct {
 	Success bool   `json:"success"`
 	Status  Status `json:"status"`
-	NewID   string `json:",omitempty"`
+	NewID   string `json:"new_id"`
 }
 
 type GetPhotoMetadataResponse struct {
