@@ -41,19 +41,19 @@ const (
  */
 
 type Photo struct {
-	ID              string    `storm:"id" json:"id"`
-	UploadedAt      time.Time `storm:"index" json:"uploaded_at"`
-	TakenAt         time.Time `storm:"index" json:"taken_at"`
-	Width           int       `storm:"index" json:"width"`
-	Height          int       `storm:"index" json:"height"`
-	Megapixels      float64   `storm:"index" json:"megapixels"`
-	Lat             float64   `json:"lat"`
-	Long            float64   `json:"long"`
-	CamSerial       string    `storm:"index" json:"cam_serial"`
-	CamMake         string    `storm:"index" json:"cam_make"`
-	CamModel        string    `storm:"index" json:"cam_model"`
-	Status          Status    `storm:"index" json:"status"`
-	StatusUpdatedAt time.Time `storm:"index" json:"status_updated_at"`
+	ID              string     `storm:"id" json:"id"`
+	UploadedAt      *time.Time `storm:"index" json:"uploaded_at"`
+	TakenAt         *time.Time `storm:"index" json:"taken_at"`
+	Width           int        `storm:"index" json:"width"`
+	Height          int        `storm:"index" json:"height"`
+	Megapixels      float64    `storm:"index" json:"megapixels"`
+	Lat             float64    `json:"lat"`
+	Long            float64    `json:"long"`
+	CamSerial       string     `storm:"index" json:"cam_serial"`
+	CamMake         string     `storm:"index" json:"cam_make"`
+	CamModel        string     `storm:"index" json:"cam_model"`
+	Status          Status     `storm:"index" json:"status"`
+	StatusUpdatedAt *time.Time `storm:"index" json:"status_updated_at"`
 }
 
 func (p *Photo) AddMetadata(r *image.Rectangle, x *exif.Exif) {
@@ -61,7 +61,7 @@ func (p *Photo) AddMetadata(r *image.Rectangle, x *exif.Exif) {
 	if err != nil {
 		log.Error("unable to find time for ", p.ID)
 	} else {
-		p.TakenAt = taken
+		p.TakenAt = &taken
 	}
 
 	lat, long, err := x.LatLong()
@@ -100,7 +100,8 @@ func (p *Photo) AddMetadata(r *image.Rectangle, x *exif.Exif) {
 
 func (p *Photo) UpdateStatus(status Status) {
 	p.Status = status
-	p.StatusUpdatedAt = time.Now()
+	t := time.Now()
+	p.StatusUpdatedAt = &t
 }
 
 func ProcessPhoto(input io.Reader, id string, photoPath string, thumbPath string) (*exif.Exif, *image.Rectangle, error) {
@@ -257,7 +258,7 @@ func (s Status) MarshalJSON() ([]byte, error) {
 
 func (s *Status) UnmarshalJSON(b []byte) error {
 	var str string
-	if err := json.Unmarshal(b, &str); err != nil{
+	if err := json.Unmarshal(b, &str); err != nil {
 		return new(json.InvalidUnmarshalError)
 	}
 	*s = ToStatus(str)

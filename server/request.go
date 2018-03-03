@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	"github.com/asdine/storm"
 	"github.com/go-chi/chi"
 	"github.com/kochman/hotshots/log"
-	"time"
 )
 
 /*
@@ -147,9 +147,9 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	photo = Photo{
 		ID:              id,
-		UploadedAt:      now,
+		UploadedAt:      &now,
 		Status:          Processing,
-		StatusUpdatedAt: now,
+		StatusUpdatedAt: &now,
 	}
 
 	if err := s.db.Save(&photo); err != nil {
