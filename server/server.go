@@ -53,7 +53,7 @@ func New(cfg *config.Config) (*Server, error) {
 
 func (s *Server) Setup() error {
 	if !CanAccessDirectory(s) {
-		return errors.New(fmt.Sprintf("Directory %s not accessible", s.cfg.PhotosDirectory))
+		return errors.New(fmt.Sprintf("directory %s not accessible", s.cfg.PhotosDirectory))
 	}
 
 	if _, err := os.Stat(s.cfg.ImgFolder()); err != nil {
@@ -91,6 +91,6 @@ func CanAccessDirectory(serv *Server) bool {
 
 func (s *Server) Run() {
 	if err := http.ListenAndServe(s.cfg.ListenURL, s.handler); err != nil {
-		log.WithError(err).Error("Unable to serve")
+		log.WithError(err).Error("unable to serve")
 	}
 }
