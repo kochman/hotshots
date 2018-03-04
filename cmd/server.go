@@ -34,6 +34,8 @@ var serverCmd = &cobra.Command{
 		}
 		runner.Add(server)
 
+		log.Info("Hotshots server running at " + config.ListenURL)
+
 		runner.Run()
 	},
 }
