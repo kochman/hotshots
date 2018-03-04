@@ -189,7 +189,7 @@ func testSaveImageHelper(t *testing.T, filename string, valid bool) {
 		inputFile.Seek(0, io.SeekStart)
 		inputID, err := GenPhotoID(inputFile)
 		require.Nil(t, err)
-		outputID, err := GenPhotoID(inputFile)
+		outputID, err := GenPhotoID(outputFile)
 		require.Nil(t, err)
 		assert.EqualValues(t, inputID, outputID)
 	} else {
