@@ -18,6 +18,7 @@ import (
 	"github.com/nfnt/resize"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
+	"github.com/rwcarlsen/goexif/tiff"
 )
 
 /*
@@ -40,6 +41,18 @@ const (
  * Data structs
  */
 
+type ProcessorWaitGroup interface{
+	Add(delta int)
+	Done()
+	Wait()
+}
+
+type ExifData interface{
+	DateTime() (time.Time, error)
+	LatLong() (float64, float64, error)
+	Get(name exif.FieldName) (*tiff.Tag, error)
+}
+
 type Photo struct {
 	ID              string     `storm:"id" json:"id"`
 	UploadedAt      *time.Time `storm:"index" json:"uploaded_at"`
@@ -56,7 +69,7 @@ type Photo struct {
 	StatusUpdatedAt *time.Time `storm:"index" json:"status_updated_at"`
 }
 
-func (p *Photo) AddMetadata(r *image.Rectangle, x *exif.Exif) {
+func (p *Photo) AddMetadata(r *image.Rectangle, x ExifData) {
 	taken, err := x.DateTime()
 	if err != nil {
 		log.Error("unable to find time for ", p.ID)
@@ -95,7 +108,7 @@ func (p *Photo) AddMetadata(r *image.Rectangle, x *exif.Exif) {
 
 	p.Width = r.Dx()
 	p.Height = r.Dy()
-	p.Megapixels = toFixed(float64(r.Dx())*float64(r.Dy())/1000000.0, 1)
+	p.Megapixels = toFixed(float64(r.Dx())*float64(r.Dy())/1000000.0, 2)
 }
 
 func (p *Photo) UpdateStatus(status Status) {
@@ -148,7 +161,26 @@ func ProcessPhoto(input io.Reader, id string, photoPath string, thumbPath string
 	return x, r, nil
 }
 
-func SaveImage(data io.Reader, path string, wg *sync.WaitGroup, errs chan error) {
+func SaveImage(data io.Reader, path string, wg ProcessorWaitGroup, errs chan error) {
+	jpgSignature := []byte{0xFF, 0xD8, 0xFF}
+	sigCheck := make([]byte, 3)
+	if _, err := io.ReadFull(data, sigCheck); err != nil {
+		log.Error(err)
+		errs <- err
+		wg.Done()
+		return
+	}
+
+	if !bytes.Equal(jpgSignature, sigCheck){
+		err := errors.New("file signature is incorrect")
+		log.Error(err)
+		errs <- err
+		wg.Done()
+		return
+	}
+
+	data = io.MultiReader(bytes.NewReader(sigCheck), data)
+
 	output, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0660)
 	if err != nil {
 		log.Error(err)
@@ -168,7 +200,7 @@ func SaveImage(data io.Reader, path string, wg *sync.WaitGroup, errs chan error)
 	wg.Done()
 }
 
-func SaveThumb(r chan *image.Rectangle, data io.Reader, path string, wg *sync.WaitGroup, errs chan error) {
+func SaveThumb(r chan *image.Rectangle, data io.Reader, path string, wg ProcessorWaitGroup, errs chan error) {
 	img, err := jpeg.Decode(data)
 	if err != nil {
 		log.Error(err)
@@ -196,7 +228,7 @@ func SaveThumb(r chan *image.Rectangle, data io.Reader, path string, wg *sync.Wa
 	wg.Done()
 }
 
-func GetExif(out chan *exif.Exif, data io.Reader, wg *sync.WaitGroup, errs chan error) {
+func GetExif(out chan *exif.Exif, data io.Reader, wg ProcessorWaitGroup, errs chan error) {
 	x, err := exif.Decode(data)
 	if err != nil {
 		log.Error(err)
@@ -218,6 +250,10 @@ func (s *Server) GetPhotoFromDatabase(photoID string) (Photo, error) {
 }
 
 func GenPhotoID(f io.ReadSeeker) (string, error) {
+	if f == nil{
+		return "", errors.New("f is nil")
+	}
+
 	digest := sha1.New()
 	if _, err := io.Copy(digest, f); err != nil {
 		return "", err
