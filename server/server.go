@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/asdine/storm"
+	"github.com/asdine/storm/index"
 	"github.com/go-chi/chi"
 	"github.com/kochman/hotshots/config"
 	"github.com/kochman/hotshots/log"
@@ -20,8 +21,18 @@ import (
  */
 type Server struct {
 	cfg     config.Config
-	db      *storm.DB
+	db      PhotoDB
 	handler http.Handler
+}
+
+type PhotoDB interface {
+	All(to interface{}, options ...func(*index.Options)) error
+	DeleteStruct(data interface{}) error
+	Find(fieldName string, value interface{}, to interface{}, options ...func(q *index.Options)) error
+	Init(data interface{}) error
+	One(fieldName string, value interface{}, to interface{}) error
+	Save(data interface{}) error
+	Update(data interface{}) error
 }
 
 func New(cfg *config.Config) (*Server, error) {
