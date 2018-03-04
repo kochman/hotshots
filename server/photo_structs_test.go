@@ -20,21 +20,21 @@ const emptyPhotoJSON = `{"id":"","uploaded_at":null,"taken_at":null,"width":0,"h
 
 const emptyJSON = `{}`
 
-type MockExif struct{
+type MockExif struct {
 	mock.Mock
 }
 
-func (x *MockExif) DateTime() (time.Time, error){
+func (x *MockExif) DateTime() (time.Time, error) {
 	args := x.Called()
 	return args.Get(0).(time.Time), args.Error(1)
 }
 
-func (x *MockExif) LatLong() (float64, float64, error){
+func (x *MockExif) LatLong() (float64, float64, error) {
 	args := x.Called()
 	return args.Get(0).(float64), args.Get(1).(float64), args.Error(2)
 }
 
-func (x *MockExif) Get(name exif.FieldName) (*tiff.Tag, error){
+func (x *MockExif) Get(name exif.FieldName) (*tiff.Tag, error) {
 	args := x.Called(name)
 	return args.Get(0).(*tiff.Tag), args.Error(1)
 }
@@ -136,8 +136,7 @@ func TestPhotoUnmarshalStatus(t *testing.T) {
 	testPhotoUnmarshalStatusHelper(t, "", false)
 }
 
-
-func TestPhotoUpdateStatus(t *testing.T){
+func TestPhotoUpdateStatus(t *testing.T) {
 	var p Photo
 	before := time.Now()
 	p.StatusUpdatedAt = &before
@@ -148,7 +147,7 @@ func TestPhotoUpdateStatus(t *testing.T){
 	assert.True(t, p.StatusUpdatedAt.After(before), "updated time is after the first time")
 }
 
-func TestPhotoAddMetadata(t *testing.T){
+func TestPhotoAddMetadata(t *testing.T) {
 	var p Photo
 	var SerialNumber exif.FieldName = mknote.SerialNumber
 	var Make exif.FieldName = exif.Make
@@ -169,8 +168,8 @@ func TestPhotoAddMetadata(t *testing.T){
 	xif.On("Get", Model).Return(cmodel, nil)
 
 	rect := new(image.Rectangle)
-	rect.Min = image.Point{X:0, Y:0}
-	rect.Max = image.Point{X:1600, Y:1200}
+	rect.Min = image.Point{X: 0, Y: 0}
+	rect.Max = image.Point{X: 1600, Y: 1200}
 
 	p.AddMetadata(rect, xif)
 

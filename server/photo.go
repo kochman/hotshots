@@ -41,13 +41,13 @@ const (
  * Data structs
  */
 
-type ProcessorWaitGroup interface{
+type ProcessorWaitGroup interface {
 	Add(delta int)
 	Done()
 	Wait()
 }
 
-type ExifData interface{
+type ExifData interface {
 	DateTime() (time.Time, error)
 	LatLong() (float64, float64, error)
 	Get(name exif.FieldName) (*tiff.Tag, error)
@@ -171,7 +171,7 @@ func SaveImage(data io.Reader, path string, wg ProcessorWaitGroup, errs chan err
 		return
 	}
 
-	if !bytes.Equal(jpgSignature, sigCheck){
+	if !bytes.Equal(jpgSignature, sigCheck) {
 		err := errors.New("file signature is incorrect")
 		log.Error(err)
 		errs <- err
@@ -250,7 +250,7 @@ func (s *Server) GetPhotoFromDatabase(photoID string) (Photo, error) {
 }
 
 func GenPhotoID(f io.ReadSeeker) (string, error) {
-	if f == nil{
+	if f == nil {
 		return "", errors.New("f is nil")
 	}
 
