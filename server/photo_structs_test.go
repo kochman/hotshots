@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-const emptyPhotoJSON = `{"id":"","uploaded_at":null,"taken_at":null,"largeWidth":0,"largeHeight":0,"megapixels":0,"lat":0,
+const emptyPhotoJSON = `{"id":"","uploaded_at":null,"taken_at":null,"width":0,"height":0,"megapixels":0,"lat":0,
 "long":0,"cam_serial":"","cam_make":"","cam_model":"","status":"processing","status_updated_at":null}`
 
 const emptyJSON = `{}`
