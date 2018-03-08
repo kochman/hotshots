@@ -1,0 +1,18 @@
+language: go
+
+go:
+  - "1.10.x"
+  - tip
+
+before_install:
+  - go get -u github.com/kardianos/govendor
+  - govendor sync
+
+script:
+  - go test -race -coverprofile=profile.out -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  email: false
