@@ -121,9 +121,6 @@ func ProcessPhoto(input io.Reader, id string, photoPath string, thumbPath string
 	rect := make(chan *image.Rectangle, 1)
 	xif := make(chan *exif.Exif, 1)
 	errs := make(chan error, 3)
-	defer close(rect)
-	defer close(xif)
-	defer close(errs)
 
 	photoBuff := new(bytes.Buffer)
 	thumbBuff := new(bytes.Buffer)

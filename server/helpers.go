@@ -40,8 +40,8 @@ func WriteJsonResponse(v interface{}, status int, w http.ResponseWriter) {
 func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 	c := make(chan struct{})
 	go func() {
-		defer close(c)
 		wg.Wait()
+		close(c)
 	}()
 	select {
 	case <-c:

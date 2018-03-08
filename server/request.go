@@ -172,7 +172,7 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error(err)
 			photo.UpdateStatus(ProcessingFailed)
-			if err := s.db.Update(photo); err != nil {
+			if err := s.db.Update(&photo); err != nil {
 				log.Error(err)
 			}
 

@@ -83,7 +83,7 @@
 			"revisionTime": "2018-02-02T15:35:43Z"
 		},
 		{
-			"checksumSHA1": "Q68FxXX04PtPDIG7C1RlSDhx/ko=",
+			"checksumSHA1": "jFB5vxLu4zA5qTKxAGTBnxyTMKA=",
 			"path": "github.com/rwcarlsen/goexif/exif",
 			"revision": "17202558c8d9c3fd047859f1a5e73fd9ae709187",
 			"revisionTime": "2018-01-10T18:11:40Z"
@@ -131,7 +131,7 @@
 			"revisionTime": "2017-09-27T09:16:38Z"
 		},
 		{
-			"checksumSHA1": "osb18zDjd7/RMAMUuN3qP+w0ewE=",
+			"checksumSHA1": "CNHEeGnucEUlTHJrLS2kHtfNbws=",
 			"path": "golang.org/x/sys/unix",
 			"revision": "37707fdb30a5b38865cfb95e5aab41707daec7fd",
 			"revisionTime": "2018-02-02T13:35:31Z"
