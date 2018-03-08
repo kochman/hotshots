@@ -77,8 +77,15 @@ func (s *Server) PhotoCtx(next http.Handler) http.Handler {
 }
 
 func (s *Server) GetPhotos(w http.ResponseWriter, r *http.Request) {
+	start, limit, err := GetPaginateValues(r)
+	if err != nil {
+		log.Error(err)
+		WriteError("Unable to parse query string", 400, w)
+		return
+	}
+
 	var photos []Photo
-	if err := s.db.All(&photos); err != nil {
+	if err := s.db.All(&photos, start, limit); err != nil {
 		log.Error(err)
 		WriteError("Unable to query photos", 500, w)
 		return
@@ -92,8 +99,14 @@ func (s *Server) GetPhotos(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetPhotoIDs(w http.ResponseWriter, r *http.Request) {
+	start, limit, err := GetPaginateValues(r)
+	if err != nil {
+		log.Error(err)
+		WriteError("Unable to parse query string", 400, w)
+		return
+	}
 	var photos []Photo
-	if err := s.db.All(&photos); err != nil {
+	if err := s.db.All(&photos, start, limit); err != nil {
 		log.Error(err)
 		WriteError("Unable to query photos", 500, w)
 		return
