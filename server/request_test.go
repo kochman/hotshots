@@ -291,7 +291,7 @@ func TestPostPhoto(t *testing.T) {
 	b, _ := ioutil.ReadAll(w.Body)
 	err := json.Unmarshal(b, &v)
 	require.Nil(t, err)
-	assert.EqualValues(t, w.Code, 200)
+	assert.EqualValues(t, w.Code, 400)
 	assert.EqualValues(t, v, ErrorResponse{Success: false, Error: "unable to parse form value 'photo'"})
 
 	// TODO: Photo already in DB + No overwrite Flag
