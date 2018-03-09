@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/asdine/storm"
+	"github.com/asdine/storm/index"
 	"github.com/go-chi/chi"
 	"github.com/kochman/hotshots/config"
 	"github.com/kochman/hotshots/log"
@@ -20,13 +22,25 @@ import (
  */
 type Server struct {
 	cfg     config.Config
-	db      *storm.DB
+	db      PhotoDB
 	handler http.Handler
+	timeout time.Duration
+}
+
+type PhotoDB interface {
+	All(to interface{}, options ...func(*index.Options)) error
+	DeleteStruct(data interface{}) error
+	Find(fieldName string, value interface{}, to interface{}, options ...func(q *index.Options)) error
+	Init(data interface{}) error
+	One(fieldName string, value interface{}, to interface{}) error
+	Save(data interface{}) error
+	Update(data interface{}) error
 }
 
 func New(cfg *config.Config) (*Server, error) {
 	s := &Server{
-		cfg: *cfg,
+		cfg:     *cfg,
+		timeout: 5 * time.Second,
 	}
 
 	if err := s.Setup(); err != nil {
@@ -53,7 +67,7 @@ func New(cfg *config.Config) (*Server, error) {
 
 func (s *Server) Setup() error {
 	if !CanAccessDirectory(s) {
-		return errors.New(fmt.Sprintf("Directory %s not accessible", s.cfg.PhotosDirectory))
+		return errors.New(fmt.Sprintf("directory %s not accessible", s.cfg.PhotosDirectory))
 	}
 
 	if _, err := os.Stat(s.cfg.ImgFolder()); err != nil {
@@ -91,6 +105,6 @@ func CanAccessDirectory(serv *Server) bool {
 
 func (s *Server) Run() {
 	if err := http.ListenAndServe(s.cfg.ListenURL, s.handler); err != nil {
-		log.WithError(err).Error("Unable to serve")
+		log.WithError(err).Error("unable to serve")
 	}
 }

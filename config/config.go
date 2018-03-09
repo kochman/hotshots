@@ -19,6 +19,11 @@ func New() (*Config, error) {
 		c.PhotosDirectory = dir
 	}
 
+	listen, ok := os.LookupEnv("HOTSHOTS_LISTEN_URL")
+	if ok {
+		c.ListenURL = listen
+	}
+
 	return c, nil
 }
 

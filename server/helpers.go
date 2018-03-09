@@ -5,6 +5,8 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/index"
@@ -48,15 +50,14 @@ func GetPaginateValues(r *http.Request) (func(*index.Options), func(*index.Optio
 }
 
 func WriteError(s string, status int, w http.ResponseWriter) {
-	w.WriteHeader(status)
 	v := ErrorResponse{
 		Success: false,
 		Error:   s,
 	}
-	WriteJsonResponse(v, w)
+	WriteJsonResponse(v, status, w)
 }
 
-func WriteJsonResponse(v interface{}, w http.ResponseWriter) {
+func WriteJsonResponse(v interface{}, status int, w http.ResponseWriter) {
 	js, err := json.Marshal(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -64,5 +65,20 @@ func WriteJsonResponse(v interface{}, w http.ResponseWriter) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	w.Write(js)
+}
+
+func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
+	c := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(c)
+	}()
+	select {
+	case <-c:
+		return false // compl eted normally
+	case <-time.After(timeout):
+		return true // timed out
+	}
 }
