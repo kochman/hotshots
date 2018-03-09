@@ -117,7 +117,7 @@ func (p *Photo) UpdateStatus(status Status) {
 	p.StatusUpdatedAt = &t
 }
 
-func ProcessPhoto(input io.Reader, id string, photoPath string, thumbPath string) (*exif.Exif, *image.Rectangle, error) {
+func ProcessPhoto(input io.Reader, id string, photoPath string, thumbPath string, timeout time.Duration) (*exif.Exif, *image.Rectangle, error) {
 	rect := make(chan *image.Rectangle, 1)
 	xif := make(chan *exif.Exif, 1)
 	errs := make(chan error, 3)
@@ -144,7 +144,7 @@ func ProcessPhoto(input io.Reader, id string, photoPath string, thumbPath string
 	go SaveThumb(rect, thumbBuff, thumbPath, wg, errs)
 	go GetExif(xif, exifBuff, wg, errs)
 
-	if waitTimeout(wg, ProcessingTimeout*time.Second) {
+	if waitTimeout(wg, timeout) {
 		log.Error("image processing timed out")
 		return nil, nil, errors.New("image processing timed out")
 	}

@@ -181,7 +181,7 @@ func (s *Server) PostPhoto(w http.ResponseWriter, r *http.Request) {
 		photoPath := path.Join(s.cfg.ImgFolder(), fmt.Sprintf("%s.jpg", id))
 		thumbPath := path.Join(s.cfg.ImgFolder(), fmt.Sprintf("%s-thumb.jpg", id))
 
-		xif, rect, err := ProcessPhoto(input, id, photoPath, thumbPath)
+		xif, rect, err := ProcessPhoto(input, id, photoPath, thumbPath, s.timeout)
 		if err != nil {
 			log.Error(err)
 			photo.UpdateStatus(ProcessingFailed)

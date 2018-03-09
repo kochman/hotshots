@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/asdine/storm/index"
 	"github.com/go-chi/chi"
@@ -168,6 +169,7 @@ func prepareMockServer(t *testing.T) (Server, *MockDB) {
 		cfg:     cfg,
 		db:      &db,
 		handler: nil,
+		timeout: 2 * time.Minute,
 	}, &db
 }
 

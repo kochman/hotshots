@@ -229,10 +229,10 @@ func testProcessPhotoHelper(t *testing.T, filename, expectedID string, valid boo
 	}()
 
 	start := time.Now()
-	xif, rect, err := ProcessPhoto(input, expectedID, outputFile.Name(), thumbFile.Name())
+	xif, rect, err := ProcessPhoto(input, expectedID, outputFile.Name(), thumbFile.Name(), time.Minute*2)
 	stop := time.Now()
 
-	require.WithinDuration(t, start, stop, time.Second*6, "time to execute photo processing")
+	require.WithinDuration(t, start, stop, 2*time.Minute, "time to execute photo processing")
 
 	if valid {
 		assert.Nil(t, err)

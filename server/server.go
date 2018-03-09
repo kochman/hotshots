@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/index"
@@ -23,6 +24,7 @@ type Server struct {
 	cfg     config.Config
 	db      PhotoDB
 	handler http.Handler
+	timeout time.Duration
 }
 
 type PhotoDB interface {
@@ -37,7 +39,8 @@ type PhotoDB interface {
 
 func New(cfg *config.Config) (*Server, error) {
 	s := &Server{
-		cfg: *cfg,
+		cfg:     *cfg,
+		timeout: 5 * time.Second,
 	}
 
 	if err := s.Setup(); err != nil {
