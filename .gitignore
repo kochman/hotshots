@@ -1,3 +1,5 @@
 /vendor/*/
 /hotshots
 .idea
+profile.out
+coverage.txt
