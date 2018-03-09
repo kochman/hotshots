@@ -15,8 +15,10 @@ before_install:
   - go get -u github.com/kardianos/govendor && govendor sync
   - go get -u github.com/alecthomas/gometalinter && gometalinter --install
 
-script:
+before_script:
   - gometalinter --vendor ./...
+
+script:
   - ./test.sh
 
 after_success:
