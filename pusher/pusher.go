@@ -1,66 +1,52 @@
 package pusher
 
 import (
-	"io"
-	"os"
+	"path"
+	"strings"
 	"time"
-
-	"github.com/micahwedemeyer/gphoto2go"
 
 	"github.com/kochman/hotshots/config"
 	"github.com/kochman/hotshots/log"
 )
 
 type Pusher struct {
-	cfg config.Config
+	cfg    config.Config
+	camera camera
 }
 
 func New(cfg *config.Config) (*Pusher, error) {
 	p := &Pusher{
-		cfg: *cfg,
+		cfg:    *cfg,
+		camera: newGphotoCamera(),
 	}
 
 	return p, nil
 }
 
 func (p *Pusher) Run() {
-	ticker := time.Tick(time.Second)
-	for range ticker {
-		camera := &gphoto2go.Camera{}
-		err := camera.Init()
-		if err < 0 {
-			log.Errorf("Unable to initialize camera: %s", gphoto2go.CameraResultToString(err))
+	ticker := time.NewTicker(time.Second)
+	for range ticker.C {
+		filenames, err := p.camera.listFilenames()
+		if err == errCameraNotConnected {
+			log.Info("camera not connected")
+			continue
+		} else if err != nil {
+			log.WithError(err).Error("unable to get filenames")
+			continue
 		}
 
-		folders := camera.RListFolders("/")
-		for _, folder := range folders {
-			files, _ := camera.ListFiles(folder)
-			for _, fileName := range files {
-				destFileName := "tmp/" + fileName
-				if _, err := os.Stat(destFileName); err == nil {
-					// file exists, don't copy
-					continue
-				}
-				fileWriter, err := os.Create(destFileName)
-				if err != nil {
-					log.WithError(err).Error("Unable to create file")
-					continue
-				}
-				cameraFileReader := camera.FileReader(folder, fileName)
-				defer cameraFileReader.Close()
-				_, err = io.Copy(fileWriter, cameraFileReader)
-				if err != nil {
-					log.WithError(err).Error("Unable to copy photo")
-					continue
-				}
-				log.Infof("Copied photo to %s", destFileName)
-
-				// Important, since there is memory used in the transfer that needs to be freed up
+		log.Infof("%+v", filenames)
+		for _, filename := range filenames {
+			// only transfer JPEGs
+			if strings.ToLower(path.Ext(filename)) != ".jpg" {
+				continue
 			}
-		}
-		err = camera.Exit()
-		if err < 0 {
-			log.Errorf("Unable to exit camera: %s", gphoto2go.CameraResultToString(err))
+			b, err := p.camera.getFile(filename)
+			if err != nil {
+				log.WithError(err).Error("unable to get file")
+			} else {
+				log.Infof("%s len %d", filename, len(b))
+			}
 		}
 	}
 }
