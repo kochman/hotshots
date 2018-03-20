@@ -2,6 +2,7 @@ package pusher
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -32,22 +33,27 @@ type photoResponse struct {
 }
 
 type Pusher struct {
-	cfg    config.Config
-	camera camera
+	cfg               config.Config
+	camera            camera
+	filenameToPhotoID map[string]string
 }
 
 func New(cfg *config.Config) (*Pusher, error) {
 	p := &Pusher{
-		cfg:    *cfg,
-		camera: newGphotoCamera(),
+		cfg:               *cfg,
+		camera:            newGphotoCamera(),
+		filenameToPhotoID: map[string]string{},
 	}
 
 	return p, nil
 }
 
 func (p *Pusher) Run() {
+
 	ticker := time.NewTicker(time.Second)
 	for range ticker.C {
+		p.generatePhotoIDs()
+
 		photos, err := p.getExistingPhotos()
 		if err != nil {
 			log.WithError(err).Error("unable to get existing photos")
@@ -55,21 +61,27 @@ func (p *Pusher) Run() {
 		}
 		log.Infof("%+v", photos)
 
-		filenames, err := p.camera.listFilenames()
-		if err == errCameraNotConnected {
-			log.Info("camera not connected")
-			continue
-		} else if err != nil {
-			log.WithError(err).Error("unable to get filenames")
-			continue
+		toUpload := []string{}
+		for filename, id := range p.filenameToPhotoID {
+			found := false
+			for _, existing := range photos {
+				if id == existing {
+					found = true
+					break
+				}
+			}
+			if !found {
+				toUpload = append(toUpload, filename)
+			}
 		}
 
-		log.Infof("%+v", filenames)
-		for _, filename := range filenames {
+		log.Infof("%+v", toUpload)
+		for _, filename := range toUpload {
 			// only transfer JPEGs
 			if strings.ToLower(path.Ext(filename)) != ".jpg" {
 				continue
 			}
+
 			b, err := p.camera.getFile(filename)
 			if err != nil {
 				log.WithError(err).Error("unable to get file")
@@ -160,4 +172,48 @@ func (p *Pusher) uploadPhoto(photo []byte) error {
 	}
 
 	return nil
+}
+
+func (p *Pusher) generatePhotoID(photo []byte) (string, error) {
+	digest := sha1.New()
+	photoBuf := bytes.NewBuffer(photo)
+	if _, err := photoBuf.WriteTo(digest); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", digest.Sum(nil)), nil
+}
+
+func (p *Pusher) generatePhotoIDs() {
+	filenames, err := p.camera.listFilenames()
+	if err == errCameraNotConnected {
+		return
+	} else if err != nil {
+		log.WithError(err).Error("unable to get filenames")
+		return
+	}
+
+	log.Infof("%+v", filenames)
+	for _, filename := range filenames {
+		// only transfer JPEGs
+		if strings.ToLower(path.Ext(filename)) != ".jpg" {
+			continue
+		}
+
+		// generate an ID for this photo if not exists
+		if _, ok := p.filenameToPhotoID[filename]; ok {
+			continue
+		}
+		b, err := p.camera.getFile(filename)
+		if err != nil {
+			log.WithError(err).Error("unable to get file")
+			continue
+		}
+		id, err := p.generatePhotoID(b)
+		if err != nil {
+			log.WithError(err).Errorf("unable to generate photo ID %s", filename)
+			continue
+		}
+
+		p.filenameToPhotoID[filename] = id
+	}
 }
