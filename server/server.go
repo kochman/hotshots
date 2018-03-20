@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/asdine/storm"
@@ -48,6 +50,11 @@ func New(cfg *config.Config) (*Server, error) {
 	}
 
 	router := chi.NewRouter()
+	// Serve static content
+	workDir, _ := os.Getwd()
+	filesDir := filepath.Join(workDir, "web")
+	FileServer(router, "/web", http.Dir(filesDir))
+	// Route everthing else
 	router.NotFound(NotFound)
 	router.Route("/photos", func(router chi.Router) {
 		router.Get("/", s.GetPhotos)
@@ -63,6 +70,26 @@ func New(cfg *config.Config) (*Server, error) {
 
 	s.handler = router
 	return s, nil
+}
+
+// FileServer conveniently sets up a http.FileServer handler to serve
+// static files from a http.FileSystem.
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit URL parameters.")
+	}
+
+	fs := http.StripPrefix(path, http.FileServer(root))
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fs.ServeHTTP(w, r)
+	}))
 }
 
 func (s *Server) Setup() error {
@@ -104,6 +131,7 @@ func CanAccessDirectory(serv *Server) bool {
 }
 
 func (s *Server) Run() {
+
 	if err := http.ListenAndServe(s.cfg.ListenURL, s.handler); err != nil {
 		log.WithError(err).Error("unable to serve")
 	}

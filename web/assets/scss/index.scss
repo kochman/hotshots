@@ -1,0 +1,59 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.radio-line:first-child {
+    margin-top: 10px;
+}
+
+.radio-line {
+    margin-bottom: 10px;
+}
+
+.logo-img {
+    width: 120px;
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-top: 10px;
+}
+
+.jumbotron {
+    text-align: center;
+    background-color: transparent;
+}
+
+.jumbotron p {
+    font-weight: 300;
+}
+
+.jumbotron .btn {
+    padding: 14px 24px;
+    font-size: 21px;
+}
+
+.form {
+    width: 600px;
+    margin-top: 50px;
+    padding-bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.form label {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.form-group {
+    margin-bottom: 30px;
+}
+
+.footer {
+    font-size: 12.5px;
+    color: #666;
+    text-align: center;
+    padding-top: 30px;
+    padding-bottom: 40px;
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+}

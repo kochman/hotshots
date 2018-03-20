@@ -10,7 +10,6 @@ import (
 )
 
 func init() {
-	serverCmd.PersistentFlags().String("listenURL", "", "The address Hotshots will serve itself on.")
 	rootCmd.AddCommand(serverCmd)
 }
 
@@ -26,13 +25,6 @@ var serverCmd = &cobra.Command{
 			log.WithError(err).Error("unable to create config")
 			return
 		}
-
-		listenURL := cmd.Flag("listenURL").Value.String()
-
-		if listenURL != "" {
-			config.ListenURL = listenURL
-		}
-
 		runner := runner.New()
 
 		server, err := server.New(config)
@@ -41,8 +33,6 @@ var serverCmd = &cobra.Command{
 			return
 		}
 		runner.Add(server)
-
-		log.Info("Hotshots server running at " + config.ListenURL)
 
 		runner.Run()
 	},
