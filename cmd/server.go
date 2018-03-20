@@ -23,7 +23,7 @@ var serverCmd = &cobra.Command{
 
 		config, err := config.New()
 		if err != nil {
-			log.WithError(err).Error("Unable to create config")
+			log.WithError(err).Error("unable to create config")
 			return
 		}
 
@@ -37,7 +37,7 @@ var serverCmd = &cobra.Command{
 
 		server, err := server.New(config)
 		if err != nil {
-			log.WithError(err).Error("Unable to create server")
+			log.WithError(err).Error("unable to create server")
 			return
 		}
 		runner.Add(server)

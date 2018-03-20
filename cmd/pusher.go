@@ -20,7 +20,7 @@ var pusherCmd = &cobra.Command{
 
 		_, err := config.New()
 		if err != nil {
-			log.WithError(err).Error("Unable to create config")
+			log.WithError(err).Error("unable to create config")
 			return
 		}
 	},
