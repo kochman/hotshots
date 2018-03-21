@@ -50,11 +50,8 @@ func New(cfg *config.Config) (*Server, error) {
 	}
 
 	router := chi.NewRouter()
-	// Serve static content
-	workDir, _ := os.Getwd()
-	filesDir := filepath.Join(workDir, "web")
-	FileServer(router, "/web", http.Dir(filesDir))
-	// Route everthing else
+
+	// Route everything else
 	router.NotFound(NotFound)
 	router.Route("/photos", func(router chi.Router) {
 		router.Get("/", s.GetPhotos)
@@ -67,6 +64,11 @@ func New(cfg *config.Config) (*Server, error) {
 			router.Get("/meta", s.GetPhotoMetadata)
 		})
 	})
+
+	// Serve static content
+	workDir, _ := os.Getwd()
+	filesDir := filepath.Join(workDir, "web")
+	FileServer(router, "/web", http.Dir(filesDir))
 
 	s.handler = router
 	return s, nil
