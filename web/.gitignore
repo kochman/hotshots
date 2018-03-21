@@ -1,3 +1,5 @@
 /vendor/*/
+/web/assets/js/components
+/web/assets/css
 /hotshots
 .idea

@@ -68,7 +68,7 @@ func New(cfg *config.Config) (*Server, error) {
 	// Serve static content
 	workDir, _ := os.Getwd()
 	filesDir := filepath.Join(workDir, "web")
-	FileServer(router, "/web", http.Dir(filesDir))
+	FileServer(router, "/", http.Dir(filesDir))
 
 	s.handler = router
 	return s, nil
