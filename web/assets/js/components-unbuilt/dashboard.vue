@@ -8,6 +8,6 @@
             return {
                 title: "Hotshots"
             };
-        },
+        }
     }
 </script>
