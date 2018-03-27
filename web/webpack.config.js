@@ -41,10 +41,13 @@ module.exports = {
   },
   resolve: {
     alias: {
-      'vue$': 'vue/dist/vue.esm.js'
+      'vue$': 'vue/dist/vue.esm.js',
+      'vue-resource$': 'vue-resource/dist/vue-resource.esm.js',
+      'jquery$': 'jquery/dist/jquery.min.js'
     },
-    extensions: ['*', '.js', '.vue', '.json']
+    extensions: ['*', '.js', '.vue', '.json', '.css', '.scss']
   },
+  
   devServer: {
     historyApiFallback: true,
     noInfo: true,
