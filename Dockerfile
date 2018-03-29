@@ -9,7 +9,6 @@ RUN govendor sync
 COPY . /go/src/github.com/kochman/hotshots
 RUN go install github.com/kochman/hotshots
 
-ENV HOTSHOTS_DIR /var/hotshots
 ENV HOTSHOTS_LISTEN_URL 0.0.0.0:8000
 VOLUME /var/hotshots
 EXPOSE 8000
