@@ -1,11 +1,16 @@
 import Vue from 'vue'
-import VueResource from 'vue-resource'
-import jQuery from 'jquery'
+import VueMoment from 'vue-moment'
 import navBar from './nav-bar.vue'
 import dashboard from './dashboard.vue'
 
+const $ = require('jquery');
+window.jQuery = $;
+window.$ = $;
 
-Vue.use(require('vue-moment'));
+window.axios = require('axios');
+Vue.prototype.$http = window.axios;
+
+Vue.use('VueMoment');
 
 new Vue({
   el: '#hotshots-dashboard',

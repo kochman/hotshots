@@ -1,5 +1,7 @@
 /vendor/*/
 /hotshots
+/web/assets/js/components
+/web/assets/css
 .idea
 profile.out
 coverage.txt
