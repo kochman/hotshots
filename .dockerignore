@@ -1,0 +1,8 @@
+*
+!vendor/vendor.json
+!cmd
+!config
+!data
+!log
+!main.go
+!server
