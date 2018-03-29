@@ -36,7 +36,7 @@
             <div class="container">
                 <div class="row">
                     <div v-for="photoID in photoIDs" class="col-sm">
-                        <img v-bind:src="'photos/' + photoID + 'thumb.jpg'" class="img-thumbnail">
+                        <a v-bind:href="'photos/' + photoID + '/image.jpg'"><img v-bind:src="'photos/' + photoID + '/thumb.jpg'" class="img-thumbnail"></a>
                     </div>
                 </div>
             </div>
@@ -62,10 +62,9 @@
         methods: {
             fetchAPIData: function() {
                 var vue = this;
-                var apiCalls = [];
                 
                 this.$http.get('photos/ids').then(function(response) {
-                    vue.photoIDs = response.ids;
+                    vue.photoIDs = response.data.ids;
                     vue.isLoaded = true;
                 })
 
