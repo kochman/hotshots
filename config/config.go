@@ -4,16 +4,21 @@ import "os"
 import "path"
 
 type Config struct {
-	ListenURL       string
+	// Where the server listens
+	ListenURL string
+
+	// Where the server stores data
 	PhotosDirectory string
-	PusherDestURL   string
+
+	// Where the pusher should expect to find the server
+	ServerURL string
 }
 
 func New() (*Config, error) {
 	c := &Config{
 		ListenURL:       "127.0.0.1:8000",
 		PhotosDirectory: "/var/hotshots",
-		PusherDestURL:   "http://127.0.0.1:8000",
+		ServerURL:       "http://127.0.0.1:8000",
 	}
 
 	dir, ok := os.LookupEnv("HOTSHOTS_DIR")
@@ -26,9 +31,9 @@ func New() (*Config, error) {
 		c.ListenURL = listen
 	}
 
-	dest, ok := os.LookupEnv("HOTSHOTS_PUSHER_DEST_URL")
+	server, ok := os.LookupEnv("HOTSHOTS_SERVER_URL")
 	if ok {
-		c.PusherDestURL = dest
+		c.ServerURL = server
 	}
 
 	return c, nil

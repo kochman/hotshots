@@ -103,7 +103,7 @@ func (p *Pusher) getExistingPhotos() ([]string, error) {
 		Timeout: 5 * time.Second,
 	}
 
-	req, err := http.NewRequest("GET", p.cfg.PusherDestURL+photoIDEndpoint, nil)
+	req, err := http.NewRequest("GET", p.cfg.ServerURL+photoIDEndpoint, nil)
 	if err != nil {
 		return []string{}, err
 	}
@@ -145,7 +145,7 @@ func (p *Pusher) uploadPhoto(photo []byte) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", p.cfg.PusherDestURL+photosEndpoint, &buf)
+	req, err := http.NewRequest("POST", p.cfg.ServerURL+photosEndpoint, &buf)
 	if err != nil {
 		return err
 	}
