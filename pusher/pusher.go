@@ -3,11 +3,7 @@ package pusher
 import (
 	"bytes"
 	"crypto/sha1"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"mime/multipart"
-	"net/http"
 	"path"
 	"strings"
 	"time"
@@ -15,9 +11,6 @@ import (
 	"github.com/kochman/hotshots/config"
 	"github.com/kochman/hotshots/log"
 )
-
-const photosEndpoint = "/photos"
-const photoIDEndpoint = photosEndpoint + "/ids"
 
 // this is copied/pasted from the server package... should we just import it?
 type photoIDsResponse struct {
@@ -36,6 +29,7 @@ type Pusher struct {
 	cfg               config.Config
 	camera            camera
 	filenameToPhotoID map[string]string
+	photoService      photoService
 }
 
 func New(cfg *config.Config) (*Pusher, error) {
@@ -43,135 +37,66 @@ func New(cfg *config.Config) (*Pusher, error) {
 		cfg:               *cfg,
 		camera:            newGphotoCamera(),
 		filenameToPhotoID: map[string]string{},
+		photoService: &remoteAPI{
+			url: cfg.ServerURL,
+		},
 	}
 
 	return p, nil
 }
 
 func (p *Pusher) Run() {
-
 	ticker := time.NewTicker(time.Second)
 	for range ticker.C {
-		p.generatePhotoIDs()
+		p.uploadNewPhotos()
+	}
+}
 
-		photos, err := p.getExistingPhotos()
-		if err != nil {
-			log.WithError(err).Error("unable to get existing photos")
+func (p *Pusher) uploadNewPhotos() {
+	p.generatePhotoIDs()
+
+	photos, err := p.photoService.existingPhotos()
+	if err != nil {
+		log.WithError(err).Error("unable to get existing photos")
+		return
+	}
+	log.Infof("%+v", photos)
+
+	toUpload := []string{}
+	for filename, id := range p.filenameToPhotoID {
+		found := false
+		for _, existing := range photos {
+			if id == existing {
+				found = true
+				break
+			}
+		}
+		if !found {
+			toUpload = append(toUpload, filename)
+		}
+	}
+
+	log.Infof("%+v", toUpload)
+	for _, filename := range toUpload {
+		// only transfer JPEGs
+		if strings.ToLower(path.Ext(filename)) != ".jpg" {
 			continue
 		}
-		log.Infof("%+v", photos)
 
-		toUpload := []string{}
-		for filename, id := range p.filenameToPhotoID {
-			found := false
-			for _, existing := range photos {
-				if id == existing {
-					found = true
-					break
-				}
-			}
-			if !found {
-				toUpload = append(toUpload, filename)
-			}
+		b, err := p.camera.getFile(filename)
+		if err != nil {
+			log.WithError(err).Error("unable to get file")
+			continue
 		}
 
-		log.Infof("%+v", toUpload)
-		for _, filename := range toUpload {
-			// only transfer JPEGs
-			if strings.ToLower(path.Ext(filename)) != ".jpg" {
-				continue
-			}
-
-			b, err := p.camera.getFile(filename)
-			if err != nil {
-				log.WithError(err).Error("unable to get file")
-				continue
-			}
-
-			err = p.uploadPhoto(b)
-			if err != nil {
-				log.WithError(err).Errorf("unable to upload %s", filename)
-				continue
-			}
-			log.Infof("uploaded photo %s", filename)
+		err = p.photoService.uploadPhoto(b)
+		if err != nil {
+			log.WithError(err).Errorf("unable to upload %s", filename)
+			continue
 		}
-	}
-}
-
-func (p *Pusher) getExistingPhotos() ([]string, error) {
-	c := &http.Client{
-		Timeout: 5 * time.Second,
+		log.Infof("uploaded photo %s", filename)
 	}
 
-	req, err := http.NewRequest("GET", p.cfg.ServerURL+photoIDEndpoint, nil)
-	if err != nil {
-		return []string{}, err
-	}
-
-	resp, err := c.Do(req)
-	if err != nil {
-		return []string{}, err
-	}
-
-	var idsResp photoIDsResponse
-	dec := json.NewDecoder(resp.Body)
-	err = dec.Decode(&idsResp)
-	if err != nil {
-		return []string{}, err
-	}
-
-	return idsResp.IDs, nil
-}
-
-func (p *Pusher) uploadPhoto(photo []byte) error {
-	c := &http.Client{
-		Timeout: 30 * time.Second,
-	}
-
-	buf := bytes.Buffer{}
-	writer := multipart.NewWriter(&buf)
-	w, err := writer.CreateFormFile("photo", "photo")
-	if err != nil {
-		return err
-	}
-
-	photoBuf := bytes.NewBuffer(photo)
-	_, err = photoBuf.WriteTo(w)
-	if err != nil {
-		return err
-	}
-	err = writer.Close()
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest("POST", p.cfg.ServerURL+photosEndpoint, &buf)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	resp, err := c.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	var photoResp photoResponse
-	dec := json.NewDecoder(resp.Body)
-	err = dec.Decode(&photoResp)
-	if err != nil {
-		return err
-	}
-
-	if !photoResp.Success {
-		return errors.New("unsuccessful response")
-	}
-
-	return nil
 }
 
 func (p *Pusher) generatePhotoID(photo []byte) (string, error) {
