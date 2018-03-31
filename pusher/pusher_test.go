@@ -69,6 +69,16 @@ func TestGeneratePhotoIDsNotJPG(t *testing.T) {
 
 	p.generatePhotoIDs()
 
+	_, ok := p.filenameToPhotoID["hi.NEF"]
+	if ok {
+		t.Errorf("did not expect \"hi.NEF\" to have a photo ID")
+	}
+
+	_, ok = p.filenameToPhotoID["hi.CR2"]
+	if ok {
+		t.Errorf("did not expect \"hi.CR2\" to have a photo ID")
+	}
+
 	camera.AssertExpectations(t)
 }
 
@@ -87,11 +97,29 @@ func TestGeneratePhotoIDs(t *testing.T) {
 
 	camera := &mockCamera{}
 	camera.On("listFilenames").Return([]string{"hi.JPG", "there.JPG"}, nil)
-	camera.On("getFile", "hi.JPG").Return([]byte("bloop"), nil)
-	camera.On("getFile", "there.JPG").Return([]byte("bloop"), nil)
+	camera.On("getFile", "hi.JPG").Return([]byte("hello"), nil)
+	camera.On("getFile", "there.JPG").Return([]byte("there"), nil)
 	p.camera = camera
 
 	p.generatePhotoIDs()
+
+	val, ok := p.filenameToPhotoID["hi.JPG"]
+	if ok {
+		if val != "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d" {
+			t.Errorf("\"hi.JPG\" has unexpected photo ID")
+		}
+	} else {
+		t.Errorf("expected \"hi.JPG\" to have a photo ID")
+	}
+
+	val, ok = p.filenameToPhotoID["there.JPG"]
+	if ok {
+		if val != "490528f36debf7c15cea5e9a9d1ea024cf6b2921" {
+			t.Errorf("\"there.JPG\" has unexpected photo ID")
+		}
+	} else {
+		t.Errorf("expected \"there.JPG\" to have a photo ID")
+	}
 
 	camera.AssertExpectations(t)
 }
