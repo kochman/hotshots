@@ -50,19 +50,19 @@ type gphoto2Camera interface {
 // All operations that interact with the camera are surrounded with a mutex.
 type localCamera struct {
 	m       *sync.Mutex
-	wrapper gphoto2Camera
+	gphoto2 gphoto2Camera
 }
 
 // newLocalCamera creates a new localCamera with internal mutex.
 func newLocalCamera() *localCamera {
 	return &localCamera{
 		m:       &sync.Mutex{},
-		wrapper: &gphoto2go.Camera{},
+		gphoto2: &gphoto2go.Camera{},
 	}
 }
 
 func (c *localCamera) initCamera() error {
-	err := c.wrapper.Init()
+	err := c.gphoto2.Init()
 	if err < 0 {
 		gphotoErr := gphoto2go.CameraResultToString(err)
 		if gphotoErr == unknownModel {
@@ -74,7 +74,7 @@ func (c *localCamera) initCamera() error {
 }
 
 func (c *localCamera) exitCamera() error {
-	err := c.wrapper.Exit()
+	err := c.gphoto2.Exit()
 	if err < 0 {
 		gphotoErr := gphoto2go.CameraResultToString(err)
 		return &UnhandledError{msg: gphotoErr}
@@ -91,9 +91,9 @@ func (c *localCamera) listFilenames() ([]string, error) {
 	}
 	defer c.exitCamera()
 
-	folders := c.wrapper.RListFolders("/")
+	folders := c.gphoto2.RListFolders("/")
 	for _, folder := range folders {
-		files, err := c.wrapper.ListFiles(folder)
+		files, err := c.gphoto2.ListFiles(folder)
 		if err < 0 {
 			gphotoErr := gphoto2go.CameraResultToString(err)
 			return filenames, &UnhandledError{msg: gphotoErr}
@@ -120,7 +120,7 @@ func (c *localCamera) getFile(filename string) ([]byte, error) {
 	}
 	defer c.exitCamera()
 
-	cameraFileReader := c.wrapper.FileReader(folder, name)
+	cameraFileReader := c.gphoto2.FileReader(folder, name)
 	// Important, since there is memory used in the transfer that needs to be freed up
 	defer cameraFileReader.Close()
 
@@ -135,12 +135,3 @@ func (c *localCamera) getFile(filename string) ([]byte, error) {
 
 	return buf.Bytes(), nil
 }
-
-// func (w *gphoto2Wrapper) Init() int {
-//     return w.Init()
-// }
-// Init() int
-// Exit() int
-// RListFolders(folder string) []string
-// ListFiles(folder string) ([]string, int)
-// FileReader(folder, name string) io.ReadCloser
