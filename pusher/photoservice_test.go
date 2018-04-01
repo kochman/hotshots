@@ -161,6 +161,7 @@ func TestExistingPhotosPagination(t *testing.T) {
 	}
 
 	testPagination(0)
+	testPagination(1)
 	testPagination(99)
 	testPagination(100)
 	testPagination(101)
