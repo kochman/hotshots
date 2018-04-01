@@ -1,6 +1,7 @@
 package pusher
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -172,4 +173,67 @@ func TestUploadNewPhotos(t *testing.T) {
 	photoService.AssertExpectations(t)
 	photoService.AssertNumberOfCalls(t, "existingPhotos", 1)
 	photoService.AssertNumberOfCalls(t, "uploadPhoto", 2)
+}
+
+func TestUploadNewPhotosExistingPhotosErr(t *testing.T) {
+	cfg, err := config.New()
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+		return
+	}
+
+	p, err := New(cfg)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+		return
+	}
+
+	cameraService := &mockCameraService{}
+	cameraService.On("listFilenames").Return([]string{}, nil)
+	p.cameraService = cameraService
+
+	photoService := &mockPhotoService{}
+	photoService.On("existingPhotos").Return([]string{}, errors.New("some error"))
+	p.photoService = photoService
+
+	p.uploadNewPhotos()
+
+	cameraService.AssertExpectations(t)
+
+	photoService.AssertExpectations(t)
+	photoService.AssertNumberOfCalls(t, "existingPhotos", 1)
+}
+
+func TestUploadNewPhotosNotExisting(t *testing.T) {
+	cfg, err := config.New()
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+		return
+	}
+
+	p, err := New(cfg)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+		return
+	}
+
+	cameraService := &mockCameraService{}
+	cameraService.On("listFilenames").Return([]string{"hi.JPG", "there.JPG"}, nil)
+	cameraService.On("getFile", "hi.JPG").Return([]byte("hello"), nil)
+	cameraService.On("getFile", "there.JPG").Return([]byte("there"), nil)
+	p.cameraService = cameraService
+
+	photoService := &mockPhotoService{}
+	// this is the sha1 hash of "hello", so it shouldn't get uploaded again
+	photoService.On("existingPhotos").Return([]string{"aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"}, nil)
+	photoService.On("uploadPhoto", []byte("there")).Return(nil)
+	p.photoService = photoService
+
+	p.uploadNewPhotos()
+
+	cameraService.AssertExpectations(t)
+
+	photoService.AssertExpectations(t)
+	photoService.AssertNumberOfCalls(t, "existingPhotos", 1)
+	photoService.AssertNumberOfCalls(t, "uploadPhoto", 1)
 }
