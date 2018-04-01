@@ -47,7 +47,7 @@ type gphoto2Camera interface {
 }
 
 // localCamera communicates with a local camera through libgphoto2.
-// All operations that interact with the camera are surrounded with a mutex.
+// All operations that interact with the gphoto2 camera are surrounded with a mutex.
 type localCamera struct {
 	m       *sync.Mutex
 	gphoto2 gphoto2Camera
