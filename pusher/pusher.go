@@ -67,7 +67,6 @@ func (p *Pusher) uploadNewPhotos() {
 		}
 	}
 
-	log.Infof("%+v", toUpload)
 	for _, filename := range toUpload {
 		// only transfer JPEGs
 		if strings.ToLower(path.Ext(filename)) != ".jpg" {
@@ -80,6 +79,7 @@ func (p *Pusher) uploadNewPhotos() {
 			continue
 		}
 
+		log.Infof("uploading photo %s", filename)
 		err = p.photoService.uploadPhoto(b)
 		if err != nil {
 			log.WithError(err).Errorf("unable to upload %s", filename)
@@ -108,7 +108,6 @@ func (p *Pusher) generatePhotoIDs() {
 		return
 	}
 
-	log.Infof("%+v", filenames)
 	for _, filename := range filenames {
 		// only transfer JPEGs
 		if strings.ToLower(path.Ext(filename)) != ".jpg" {
