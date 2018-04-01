@@ -22,6 +22,8 @@ type remoteAPI struct {
 const photosEndpoint = "/photos"
 const photoIDEndpoint = photosEndpoint + "/ids"
 
+var errPhotoExists = errors.New("photo already exists")
+
 func (r *remoteAPI) existingPhotos() ([]string, error) {
 	c := &http.Client{
 		Timeout: 5 * time.Second,
@@ -80,7 +82,9 @@ func (r *remoteAPI) uploadPhoto(photo []byte) error {
 		return err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode == 400 {
+		return errPhotoExists
+	} else if resp.StatusCode != 200 {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 

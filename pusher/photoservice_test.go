@@ -126,5 +126,56 @@ func TestUploadPhoto(t *testing.T) {
 		t.Errorf("unexpected error: %s", err)
 		return
 	}
+}
 
+func TestUploadPhotoExists(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(400)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"success": false, "error": "photo already exists"}`)
+	}))
+	defer server.Close()
+
+	ps := &remoteAPI{
+		url: server.URL,
+	}
+
+	err := ps.uploadPhoto([]byte("hello"))
+	if err != errPhotoExists {
+		t.Errorf("unexpected error: %s", err)
+	}
+}
+
+func TestUploadPhotoUnexpectedStatus(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer server.Close()
+
+	ps := &remoteAPI{
+		url: server.URL,
+	}
+
+	err := ps.uploadPhoto([]byte("hello"))
+	if err.Error() != "unexpected status code: 500" {
+		t.Errorf("unexpected error: %s", err)
+	}
+}
+
+func TestUploadPhotoUnsuccessfulResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"success": false}`)
+	}))
+	defer server.Close()
+
+	ps := &remoteAPI{
+		url: server.URL,
+	}
+
+	err := ps.uploadPhoto([]byte("hello"))
+	if err.Error() != "unsuccessful response" {
+		t.Errorf("unexpected error: %s", err)
+	}
 }
