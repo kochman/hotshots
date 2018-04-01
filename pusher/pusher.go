@@ -12,19 +12,6 @@ import (
 	"github.com/kochman/hotshots/log"
 )
 
-// this is copied/pasted from the server package... should we just import it?
-type photoIDsResponse struct {
-	Success bool     `json:"success"`
-	IDs     []string `json:"ids"`
-}
-
-// same as above... this is copied/pasted from the server package... should we just import it?
-type photoResponse struct {
-	Success bool `json:"success"`
-	// Status  Status `json:"status"`
-	NewID string `json:"new_id"`
-}
-
 type Pusher struct {
 	cfg               config.Config
 	cameraService     cameraService

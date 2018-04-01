@@ -8,6 +8,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"time"
+
+	"github.com/kochman/hotshots/server"
 )
 
 type photoService interface {
@@ -39,7 +41,7 @@ func (r *remoteAPI) existingPhotos() ([]string, error) {
 		return []string{}, err
 	}
 
-	var idsResp photoIDsResponse
+	var idsResp server.GetPhotoIDsResponse
 	dec := json.NewDecoder(resp.Body)
 	err = dec.Decode(&idsResp)
 	if err != nil {
@@ -88,7 +90,7 @@ func (r *remoteAPI) uploadPhoto(photo []byte) error {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	var photoResp photoResponse
+	var photoResp server.PostPhotoResponse
 	dec := json.NewDecoder(resp.Body)
 	err = dec.Decode(&photoResp)
 	if err != nil {
