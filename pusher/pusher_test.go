@@ -22,10 +22,19 @@ func (mc *mockCamera) listFilenames() ([]string, error) {
 	return args.Get(0).([]string), args.Error(1)
 }
 
-// type camera interface {
-// 	listFilenames() ([]string, error)
-// 	getFile(filename string) ([]byte, error)
-// }
+type mockPhotoService struct {
+	mock.Mock
+}
+
+func (mps *mockPhotoService) existingPhotos() ([]string, error) {
+	args := mps.Called()
+	return args.Get(0).([]string), args.Error(1)
+}
+
+func (mps *mockPhotoService) uploadPhoto(photo []byte) error {
+	args := mps.Called(photo)
+	return args.Error(0)
+}
 
 func TestGeneratePhotoID(t *testing.T) {
 	cfg, err := config.New()
@@ -124,6 +133,35 @@ func TestGeneratePhotoIDs(t *testing.T) {
 	camera.AssertExpectations(t)
 }
 
-// func TestGetFile(t *testing.T) {
-//
-// }
+func TestUploadNewPhotos(t *testing.T) {
+	cfg, err := config.New()
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+		return
+	}
+
+	p, err := New(cfg)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+		return
+	}
+
+	camera := &mockCamera{}
+	camera.On("listFilenames").Return([]string{"hi.JPG", "there.JPG"}, nil)
+	camera.On("getFile", "hi.JPG").Return([]byte("hello"), nil)
+	camera.On("getFile", "there.JPG").Return([]byte("there"), nil)
+	p.camera = camera
+
+	photoService := &mockPhotoService{}
+	photoService.On("existingPhotos").Return([]string{}, nil)
+	photoService.On("uploadPhoto", mock.Anything).Return(nil)
+	p.photoService = photoService
+
+	p.uploadNewPhotos()
+
+	camera.AssertExpectations(t)
+
+	photoService.AssertExpectations(t)
+	photoService.AssertNumberOfCalls(t, "existingPhotos", 1)
+	photoService.AssertNumberOfCalls(t, "uploadPhoto", 2)
+}
