@@ -1,11 +1,15 @@
 package pusher
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
+
+	"github.com/kochman/hotshots/server"
 )
 
 func TestExistingPhotosNone(t *testing.T) {
@@ -35,6 +39,7 @@ func TestExistingPhotosNone(t *testing.T) {
 
 func TestExistingPhotos(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprint(w, `
 {
     "success": true,
@@ -70,6 +75,95 @@ func TestExistingPhotos(t *testing.T) {
 	if existing[2] != "490528f36debf7c15cea5e9a9d1ea024cf6b2921" {
 		t.Errorf("got unexpected photo ID")
 	}
+}
+
+func TestExistingPhotosPagination(t *testing.T) {
+	type testPhotoID struct {
+		id         string
+		numReturns int
+	}
+
+	testPagination := func(numIDs int) {
+		ids := []testPhotoID{}
+		for i := 0; i < numIDs; i++ {
+			testID := testPhotoID{
+				id:         string(i),
+				numReturns: 0,
+			}
+			ids = append(ids, testID)
+		}
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Query().Get("start") == "" {
+				t.Errorf("missing start parameter")
+				return
+			}
+			start, err := strconv.Atoi(r.URL.Query().Get("start"))
+			if err != nil {
+				t.Errorf("unable to convert start to integer: %s", err)
+				return
+			}
+
+			if r.URL.Query().Get("limit") == "" {
+				t.Errorf("missing limit parameter")
+				return
+			}
+			limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+			if err != nil {
+				t.Errorf("unable to convert start to integer: %s", err)
+				return
+			}
+
+			resp := server.GetPhotoIDsResponse{
+				Success: true,
+				IDs:     []string{},
+			}
+			for i := start; i < start+limit; i++ {
+				if i >= len(ids) {
+					break
+				}
+				resp.IDs = append(resp.IDs, ids[i].id)
+				ids[i].numReturns++
+			}
+
+			body, err := json.Marshal(resp)
+			if err != nil {
+				t.Errorf("unexpected error: %s", err)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(body)
+		}))
+		defer server.Close()
+
+		ps := &remoteAPI{
+			url: server.URL,
+		}
+
+		existing, err := ps.existingPhotos()
+		if err != nil {
+			t.Errorf("unexpected error: %s", err)
+			return
+		}
+		if len(existing) != len(ids) {
+			t.Errorf("got %d existing photos, expected %d", len(existing), len(ids))
+		}
+
+		for i, testID := range ids {
+			if testID.id != existing[i] {
+				t.Errorf("IDs do not match")
+			}
+			if testID.numReturns != 1 {
+				t.Errorf("got %d returns, expected 1", testID.numReturns)
+			}
+		}
+	}
+
+	testPagination(0)
+	testPagination(99)
+	testPagination(100)
+	testPagination(101)
 }
 
 func TestUploadPhoto(t *testing.T) {

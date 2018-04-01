@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/kochman/hotshots/server"
@@ -26,31 +27,51 @@ const photoIDEndpoint = photosEndpoint + "/ids"
 
 var errPhotoExists = errors.New("photo already exists")
 
+// existingPhotos returns all photo IDs that the remote server currently knows about.
 func (r *remoteAPI) existingPhotos() ([]string, error) {
 	c := &http.Client{
 		Timeout: 5 * time.Second,
 	}
 
-	req, err := http.NewRequest("GET", r.url+photoIDEndpoint, nil)
-	if err != nil {
-		return []string{}, err
+	ids := []string{}
+	start := 0
+	limit := 20
+
+	for {
+		req, err := http.NewRequest("GET", r.url+photoIDEndpoint, nil)
+		if err != nil {
+			return []string{}, err
+		}
+
+		query := req.URL.Query()
+		query.Set("start", strconv.Itoa(start))
+		query.Set("limit", strconv.Itoa(limit))
+		req.URL.RawQuery = query.Encode()
+
+		resp, err := c.Do(req)
+		if err != nil {
+			return []string{}, err
+		}
+
+		var idsResp server.GetPhotoIDsResponse
+		dec := json.NewDecoder(resp.Body)
+		err = dec.Decode(&idsResp)
+		if err != nil {
+			return []string{}, err
+		}
+
+		ids = append(ids, idsResp.IDs...)
+
+		if len(idsResp.IDs) < 20 {
+			break
+		}
+		start += limit
 	}
 
-	resp, err := c.Do(req)
-	if err != nil {
-		return []string{}, err
-	}
-
-	var idsResp server.GetPhotoIDsResponse
-	dec := json.NewDecoder(resp.Body)
-	err = dec.Decode(&idsResp)
-	if err != nil {
-		return []string{}, err
-	}
-
-	return idsResp.IDs, nil
+	return ids, nil
 }
 
+// uploadPhoto uploads a photo to the remote server.
 func (r *remoteAPI) uploadPhoto(photo []byte) error {
 	c := &http.Client{
 		Timeout: 10 * time.Second,
