@@ -58,7 +58,7 @@ func TestExistingPhotos(t *testing.T) {
 		return
 	}
 	if len(existing) != 3 {
-		t.Errorf("got %d existing photos, expected 2", len(existing))
+		t.Errorf("got %d existing photos, expected 3", len(existing))
 	}
 
 	if existing[0] != "6e71b3cac15d32fe2d36c270887df9479c25c640" {
