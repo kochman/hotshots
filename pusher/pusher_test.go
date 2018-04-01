@@ -12,6 +12,10 @@ type mockCamera struct {
 	mock.Mock
 }
 
+type mockPhotoService struct {
+	mock.Mock
+}
+
 func (mc *mockCamera) getFile(file string) ([]byte, error) {
 	args := mc.Called(file)
 	return args.Get(0).([]byte), args.Error(1)
@@ -20,10 +24,6 @@ func (mc *mockCamera) getFile(file string) ([]byte, error) {
 func (mc *mockCamera) listFilenames() ([]string, error) {
 	args := mc.Called()
 	return args.Get(0).([]string), args.Error(1)
-}
-
-type mockPhotoService struct {
-	mock.Mock
 }
 
 func (mps *mockPhotoService) existingPhotos() ([]string, error) {
@@ -89,6 +89,7 @@ func TestGeneratePhotoIDsNotJPG(t *testing.T) {
 	}
 
 	camera.AssertExpectations(t)
+	camera.AssertNumberOfCalls(t, "listFilenames", 1)
 }
 
 func TestGeneratePhotoIDs(t *testing.T) {
@@ -131,6 +132,8 @@ func TestGeneratePhotoIDs(t *testing.T) {
 	}
 
 	camera.AssertExpectations(t)
+	camera.AssertNumberOfCalls(t, "listFilenames", 1)
+	camera.AssertNumberOfCalls(t, "getFile", 2)
 }
 
 func TestUploadNewPhotos(t *testing.T) {
