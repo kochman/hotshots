@@ -3,6 +3,7 @@ package pusher
 import (
 	"bytes"
 	"errors"
+	"io"
 	"path"
 	"sync"
 
@@ -27,33 +28,44 @@ func (e *UnhandledError) Error() string {
 // For converting libgphoto2 error strings into Go errors.
 // See https://github.com/gphoto/libgphoto2/blob/libgphoto2-2_5_16-release/libgphoto2/gphoto2-result.c
 const (
-	libgphoto2UnknownModel = "Unknown model"
+	unknownModel = "Unknown model"
 )
 
-// camera wraps gphoto2go's Camera in order to make this package easier to test.
-type camera interface {
+// cameraService provides methods for transferring data from a camera
+type cameraService interface {
 	listFilenames() ([]string, error)
 	getFile(filename string) ([]byte, error)
 }
 
-// All operations that interact with the camera are surrounded with a mutex.
-type gphotoCamera struct {
-	m      *sync.Mutex
-	camera gphoto2go.Camera
+// camera wraps gphoto2go.Camera in order to make this package easier to test.
+type gphoto2Camera interface {
+	Init() int
+	Exit() int
+	RListFolders(folder string) []string
+	ListFiles(folder string) ([]string, int)
+	FileReader(folder, name string) io.ReadCloser
 }
 
-func newGphotoCamera() *gphotoCamera {
-	return &gphotoCamera{
-		m:      &sync.Mutex{},
-		camera: gphoto2go.Camera{},
+// localCamera communicates with a local camera through libgphoto2.
+// All operations that interact with the camera are surrounded with a mutex.
+type localCamera struct {
+	m       *sync.Mutex
+	wrapper gphoto2Camera
+}
+
+// newLocalCamera creates a new localCamera with internal mutex.
+func newLocalCamera() *localCamera {
+	return &localCamera{
+		m:       &sync.Mutex{},
+		wrapper: &gphoto2go.Camera{},
 	}
 }
 
-func (gc *gphotoCamera) initCamera() error {
-	err := gc.camera.Init()
+func (c *localCamera) initCamera() error {
+	err := c.wrapper.Init()
 	if err < 0 {
 		gphotoErr := gphoto2go.CameraResultToString(err)
-		if gphotoErr == libgphoto2UnknownModel {
+		if gphotoErr == unknownModel {
 			return errCameraNotConnected
 		}
 		return &UnhandledError{msg: gphotoErr}
@@ -61,8 +73,8 @@ func (gc *gphotoCamera) initCamera() error {
 	return nil
 }
 
-func (gc *gphotoCamera) exitCamera() error {
-	err := gc.camera.Exit()
+func (c *localCamera) exitCamera() error {
+	err := c.wrapper.Exit()
 	if err < 0 {
 		gphotoErr := gphoto2go.CameraResultToString(err)
 		return &UnhandledError{msg: gphotoErr}
@@ -70,18 +82,18 @@ func (gc *gphotoCamera) exitCamera() error {
 	return nil
 }
 
-func (gc *gphotoCamera) listFilenames() ([]string, error) {
+func (c *localCamera) listFilenames() ([]string, error) {
 	filenames := []string{}
 
-	err := gc.initCamera()
+	err := c.initCamera()
 	if err != nil {
 		return filenames, err
 	}
-	defer gc.exitCamera()
+	defer c.exitCamera()
 
-	folders := gc.camera.RListFolders("/")
+	folders := c.wrapper.RListFolders("/")
 	for _, folder := range folders {
-		files, err := gc.camera.ListFiles(folder)
+		files, err := c.wrapper.ListFiles(folder)
 		if err < 0 {
 			gphotoErr := gphoto2go.CameraResultToString(err)
 			return filenames, &UnhandledError{msg: gphotoErr}
@@ -95,20 +107,20 @@ func (gc *gphotoCamera) listFilenames() ([]string, error) {
 	return filenames, nil
 }
 
-func (gc *gphotoCamera) getFile(filename string) ([]byte, error) {
+func (c *localCamera) getFile(filename string) ([]byte, error) {
 	folder := path.Dir(filename)
 	name := path.Base(filename)
 
-	gc.m.Lock()
-	defer gc.m.Unlock()
+	c.m.Lock()
+	defer c.m.Unlock()
 
-	err := gc.initCamera()
+	err := c.initCamera()
 	if err != nil {
 		return []byte{}, err
 	}
-	defer gc.exitCamera()
+	defer c.exitCamera()
 
-	cameraFileReader := gc.camera.FileReader(folder, name)
+	cameraFileReader := c.wrapper.FileReader(folder, name)
 	// Important, since there is memory used in the transfer that needs to be freed up
 	defer cameraFileReader.Close()
 
@@ -123,3 +135,12 @@ func (gc *gphotoCamera) getFile(filename string) ([]byte, error) {
 
 	return buf.Bytes(), nil
 }
+
+// func (w *gphoto2Wrapper) Init() int {
+//     return w.Init()
+// }
+// Init() int
+// Exit() int
+// RListFolders(folder string) []string
+// ListFiles(folder string) ([]string, int)
+// FileReader(folder, name string) io.ReadCloser

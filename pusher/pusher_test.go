@@ -13,7 +13,7 @@ func init() {
 	log.SetLevel("panic")
 }
 
-type mockCamera struct {
+type mockCameraService struct {
 	mock.Mock
 }
 
@@ -21,12 +21,12 @@ type mockPhotoService struct {
 	mock.Mock
 }
 
-func (mc *mockCamera) getFile(file string) ([]byte, error) {
+func (mc *mockCameraService) getFile(file string) ([]byte, error) {
 	args := mc.Called(file)
 	return args.Get(0).([]byte), args.Error(1)
 }
 
-func (mc *mockCamera) listFilenames() ([]string, error) {
+func (mc *mockCameraService) listFilenames() ([]string, error) {
 	args := mc.Called()
 	return args.Get(0).([]string), args.Error(1)
 }
@@ -77,9 +77,9 @@ func TestGeneratePhotoIDsNotJPG(t *testing.T) {
 		return
 	}
 
-	camera := &mockCamera{}
-	camera.On("listFilenames").Return([]string{"hi.NEF", "there.CR2"}, nil)
-	p.camera = camera
+	cameraService := &mockCameraService{}
+	cameraService.On("listFilenames").Return([]string{"hi.NEF", "there.CR2"}, nil)
+	p.cameraService = cameraService
 
 	p.generatePhotoIDs()
 
@@ -93,8 +93,8 @@ func TestGeneratePhotoIDsNotJPG(t *testing.T) {
 		t.Errorf("did not expect \"hi.CR2\" to have a photo ID")
 	}
 
-	camera.AssertExpectations(t)
-	camera.AssertNumberOfCalls(t, "listFilenames", 1)
+	cameraService.AssertExpectations(t)
+	cameraService.AssertNumberOfCalls(t, "listFilenames", 1)
 }
 
 func TestGeneratePhotoIDs(t *testing.T) {
@@ -110,11 +110,11 @@ func TestGeneratePhotoIDs(t *testing.T) {
 		return
 	}
 
-	camera := &mockCamera{}
-	camera.On("listFilenames").Return([]string{"hi.JPG", "there.JPG"}, nil)
-	camera.On("getFile", "hi.JPG").Return([]byte("hello"), nil)
-	camera.On("getFile", "there.JPG").Return([]byte("there"), nil)
-	p.camera = camera
+	cameraService := &mockCameraService{}
+	cameraService.On("listFilenames").Return([]string{"hi.JPG", "there.JPG"}, nil)
+	cameraService.On("getFile", "hi.JPG").Return([]byte("hello"), nil)
+	cameraService.On("getFile", "there.JPG").Return([]byte("there"), nil)
+	p.cameraService = cameraService
 
 	p.generatePhotoIDs()
 
@@ -136,9 +136,9 @@ func TestGeneratePhotoIDs(t *testing.T) {
 		t.Errorf("expected \"there.JPG\" to have a photo ID")
 	}
 
-	camera.AssertExpectations(t)
-	camera.AssertNumberOfCalls(t, "listFilenames", 1)
-	camera.AssertNumberOfCalls(t, "getFile", 2)
+	cameraService.AssertExpectations(t)
+	cameraService.AssertNumberOfCalls(t, "listFilenames", 1)
+	cameraService.AssertNumberOfCalls(t, "getFile", 2)
 }
 
 func TestUploadNewPhotos(t *testing.T) {
@@ -154,11 +154,11 @@ func TestUploadNewPhotos(t *testing.T) {
 		return
 	}
 
-	camera := &mockCamera{}
-	camera.On("listFilenames").Return([]string{"hi.JPG", "there.JPG"}, nil)
-	camera.On("getFile", "hi.JPG").Return([]byte("hello"), nil)
-	camera.On("getFile", "there.JPG").Return([]byte("there"), nil)
-	p.camera = camera
+	cameraService := &mockCameraService{}
+	cameraService.On("listFilenames").Return([]string{"hi.JPG", "there.JPG"}, nil)
+	cameraService.On("getFile", "hi.JPG").Return([]byte("hello"), nil)
+	cameraService.On("getFile", "there.JPG").Return([]byte("there"), nil)
+	p.cameraService = cameraService
 
 	photoService := &mockPhotoService{}
 	photoService.On("existingPhotos").Return([]string{}, nil)
@@ -167,7 +167,7 @@ func TestUploadNewPhotos(t *testing.T) {
 
 	p.uploadNewPhotos()
 
-	camera.AssertExpectations(t)
+	cameraService.AssertExpectations(t)
 
 	photoService.AssertExpectations(t)
 	photoService.AssertNumberOfCalls(t, "existingPhotos", 1)

@@ -27,7 +27,7 @@ type photoResponse struct {
 
 type Pusher struct {
 	cfg               config.Config
-	camera            camera
+	cameraService     cameraService
 	filenameToPhotoID map[string]string
 	photoService      photoService
 }
@@ -35,7 +35,7 @@ type Pusher struct {
 func New(cfg *config.Config) (*Pusher, error) {
 	p := &Pusher{
 		cfg:               *cfg,
-		camera:            newGphotoCamera(),
+		cameraService:     newLocalCamera(),
 		filenameToPhotoID: map[string]string{},
 		photoService: &remoteAPI{
 			url: cfg.ServerURL,
@@ -83,7 +83,7 @@ func (p *Pusher) uploadNewPhotos() {
 			continue
 		}
 
-		b, err := p.camera.getFile(filename)
+		b, err := p.cameraService.getFile(filename)
 		if err != nil {
 			log.WithError(err).Error("unable to get file")
 			continue
@@ -109,7 +109,7 @@ func (p *Pusher) generatePhotoID(photo []byte) (string, error) {
 }
 
 func (p *Pusher) generatePhotoIDs() {
-	filenames, err := p.camera.listFilenames()
+	filenames, err := p.cameraService.listFilenames()
 	if err == errCameraNotConnected {
 		return
 	} else if err != nil {
@@ -128,7 +128,7 @@ func (p *Pusher) generatePhotoIDs() {
 		if _, ok := p.filenameToPhotoID[filename]; ok {
 			continue
 		}
-		b, err := p.camera.getFile(filename)
+		b, err := p.cameraService.getFile(filename)
 		if err != nil {
 			log.WithError(err).Error("unable to get file")
 			continue
