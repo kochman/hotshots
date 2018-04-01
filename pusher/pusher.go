@@ -12,6 +12,8 @@ import (
 	"github.com/kochman/hotshots/log"
 )
 
+// Pusher is responsible for uploading photos from a camera to a remote location.
+// It only uploads photos that don't exist remotely, in an effort to reduce bandwidth usage.
 type Pusher struct {
 	cfg               config.Config
 	cameraService     cameraService
@@ -19,6 +21,7 @@ type Pusher struct {
 	photoService      photoService
 }
 
+// New creates a new Pusher.
 func New(cfg *config.Config) (*Pusher, error) {
 	p := &Pusher{
 		cfg:               *cfg,
@@ -32,6 +35,7 @@ func New(cfg *config.Config) (*Pusher, error) {
 	return p, nil
 }
 
+// Run runs the Pusher's upload functionality in a loop forever.
 func (p *Pusher) Run() {
 	ticker := time.NewTicker(time.Second)
 	for range ticker.C {

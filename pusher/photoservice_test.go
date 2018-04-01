@@ -83,7 +83,11 @@ func TestUploadPhoto(t *testing.T) {
 			return
 		}
 
-		r.ParseMultipartForm(32 << 20) // 32 MB
+		err := r.ParseMultipartForm(32 << 20) // 32 MB
+		if err != nil {
+			t.Errorf("unexpected error: %s", err)
+			return
+		}
 
 		field, ok := r.MultipartForm.File["photo"]
 		if !ok {

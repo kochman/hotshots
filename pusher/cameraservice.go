@@ -8,6 +8,8 @@ import (
 	"sync"
 
 	"github.com/micahwedemeyer/gphoto2go"
+
+	"github.com/kochman/hotshots/log"
 )
 
 var (
@@ -89,7 +91,12 @@ func (c *localCamera) listFilenames() ([]string, error) {
 	if err != nil {
 		return filenames, err
 	}
-	defer c.exitCamera()
+	defer func() {
+		err = c.exitCamera()
+		if err != nil {
+			log.WithError(err).Error("unable to exit camera")
+		}
+	}()
 
 	folders := c.gphoto2.RListFolders("/")
 	for _, folder := range folders {
@@ -118,11 +125,21 @@ func (c *localCamera) getFile(filename string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	defer c.exitCamera()
+	defer func() {
+		err = c.exitCamera()
+		if err != nil {
+			log.WithError(err).Error("unable to exit camera")
+		}
+	}()
 
 	cameraFileReader := c.gphoto2.FileReader(folder, name)
 	// Important, since there is memory used in the transfer that needs to be freed up
-	defer cameraFileReader.Close()
+	defer func() {
+		err = cameraFileReader.Close()
+		if err != nil {
+			log.WithError(err).Error("unable to close camera file reader")
+		}
+	}()
 
 	buf := bytes.Buffer{}
 	_, err = buf.ReadFrom(cameraFileReader)
