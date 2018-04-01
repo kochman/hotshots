@@ -6,7 +6,12 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/kochman/hotshots/config"
+	"github.com/kochman/hotshots/log"
 )
+
+func init() {
+	log.SetLevel("panic")
+}
 
 type mockCamera struct {
 	mock.Mock
