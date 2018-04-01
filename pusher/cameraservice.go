@@ -37,7 +37,7 @@ type cameraService interface {
 	getFile(filename string) ([]byte, error)
 }
 
-// camera wraps gphoto2go.Camera in order to make this package easier to test.
+// gphoto2Camera is based on gphoto2go.Camera in order to make this package easier to test.
 type gphoto2Camera interface {
 	Init() int
 	Exit() int
