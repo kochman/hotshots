@@ -1,11 +1,15 @@
 package config
 
 import "os"
-import "path"
+import (
+	"path"
+	"path/filepath"
+)
 
 type Config struct {
 	ListenURL       string
 	PhotosDirectory string
+	WebDirectory    string
 }
 
 func New() (*Config, error) {
@@ -14,14 +18,22 @@ func New() (*Config, error) {
 		PhotosDirectory: "/var/hotshots",
 	}
 
-	dir, ok := os.LookupEnv("HOTSHOTS_DIR")
+	hotshotsDir, ok := os.LookupEnv("HOTSHOTS_DIR")
 	if ok {
-		c.PhotosDirectory = dir
+		c.PhotosDirectory = hotshotsDir
 	}
 
-	listen, ok := os.LookupEnv("HOTSHOTS_LISTEN_URL")
+	listenURL, ok := os.LookupEnv("HOTSHOTS_LISTEN_URL")
 	if ok {
-		c.ListenURL = listen
+		c.ListenURL = listenURL
+	}
+
+	webDir, ok := os.LookupEnv("HOTSHOTS_WEB_DIR")
+	if ok {
+		c.WebDirectory = webDir
+	} else {
+		webDir, _ = os.Getwd()
+		c.WebDirectory = filepath.Join(webDir, "web")
 	}
 
 	return c, nil

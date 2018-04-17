@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -65,15 +64,12 @@ func New(cfg *config.Config) (*Server, error) {
 		})
 	})
 
-	// Serve static content
-	workDir, _ := os.Getwd()
-	filesDir := filepath.Join(workDir, "web")
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filesDir+"/index.html")
+		http.ServeFile(w, r, cfg.WebDirectory+"/index.html")
 	})
 
-	FileServer(router, "/web", http.Dir(filesDir))
+	FileServer(router, "/web", http.Dir(cfg.WebDirectory))
 
 	s.handler = router
 	return s, nil
