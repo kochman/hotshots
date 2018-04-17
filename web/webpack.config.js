@@ -5,7 +5,7 @@ module.exports = {
   entry: './assets/js/components-unbuilt/dashboard.js',
   output: {
     path: path.resolve(__dirname, 'assets/js/components'),
-    publicPath: '/web/assets/js/components/',
+    publicPath: 'web/assets/js/components/',
     filename: 'built.js'
   },
   module: {

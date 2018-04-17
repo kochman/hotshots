@@ -2,6 +2,7 @@
 /hotshots
 /web/assets/js/components
 /web/assets/css
+/web/node_modules
 .idea
 profile.out
 coverage.txt
