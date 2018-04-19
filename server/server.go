@@ -31,6 +31,7 @@ type Server struct {
 
 type PhotoDB interface {
 	All(to interface{}, options ...func(*index.Options)) error
+	Count(data interface{}) (int, error)
 	DeleteStruct(data interface{}) error
 	Find(fieldName string, value interface{}, to interface{}, options ...func(q *index.Options)) error
 	Init(data interface{}) error
@@ -59,6 +60,7 @@ func New(cfg *config.Config) (*Server, error) {
 		router.Get("/", s.GetPhotos)
 		router.Post("/", s.PostPhoto)
 		router.Get("/ids", s.GetPhotoIDs)
+		router.Get("/pages", s.GetPages)
 		router.Route("/{pid}", func(router chi.Router) {
 			router.Use(s.PhotoCtx)
 			router.Delete("/", s.DeletePhoto)

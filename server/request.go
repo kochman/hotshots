@@ -57,6 +57,12 @@ type DeleteTagResponse struct {
 	Tags    []string `json:"tags"`
 }
 
+type GetPagesResponse struct {
+	Success bool `json:"success"`
+	MaxPage int  `json:"max_page"`
+	Photos  int  `json:"photos"`
+}
+
 type ErrorResponse struct {
 	Success bool   `json:"success"`
 	Error   string `json:"error"`
@@ -389,3 +395,22 @@ func (s *Server) DeleteTag(w http.ResponseWriter, r *http.Request) {
 		Tags: photo.Tags,
 	}, 200, w)
 }
+
+func (s *Server) GetPages(w http.ResponseWriter, r *http.Request) {
+	photos, err := s.db.Count(&Photo{})
+	if err != nil {
+		log.Error(err)
+		WriteError("unable to get photo count", 500, w)
+		return
+	}
+
+	maxPage := photos/PageSize + 1
+
+	WriteJsonResponse(&GetPagesResponse{
+		Success: true,
+		MaxPage: maxPage,
+		Photos: photos,
+	}, 200, w)
+}
+
+

@@ -8,6 +8,9 @@ import (
 	"sync"
 	"time"
 )
+const(
+	PageSize = 20
+)
 
 func round(num float64) int {
 	return int(num + math.Copysign(0.5, num))
@@ -46,7 +49,7 @@ func GetPaginateValues(r *http.Request) (int, int, error) {
 		}
 		limit = int(limitVal)
 	} else {
-		limit = 20
+		limit = PageSize
 	}
 
 	return start, limit, nil
