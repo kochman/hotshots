@@ -12,6 +12,8 @@ matrix:
     - go: tip
 
 before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libgphoto2-dev
   - go get -u github.com/kardianos/govendor && govendor sync
   - go get -u github.com/alecthomas/gometalinter && gometalinter --install
 
