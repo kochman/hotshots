@@ -19,7 +19,6 @@
           <th scope="col" width="20%">Key</th>
           <th scope="col" width="80%">Value</th>
         </tr>
-
         </thead>
         <tbody>
           <tr v-for="(value, key) in mdata">
@@ -61,6 +60,8 @@
             vue.$http.delete('photos/' + vue.photo_id).then(function (response) {
               if (!response.data.success) {
                 bootbox.alert("Unable to delete photo.");
+              } else {
+                location.reload();
               }
             }, function (response) {
               bootbox.alert("Unable to delete photo.");
@@ -80,8 +81,7 @@
           if(tag !== null){
             vue.$http.post('photos/' + vue.photo_id + "/tags/" + tag).then(
               function (response) {
-                bootbox.alert("Tag '" + tag + "' added!");
-                vue.get_metadata();
+                location.reload();
               }, function (response) {
                 bootbox.alert("Unable to add tag: " + tag);
               }
