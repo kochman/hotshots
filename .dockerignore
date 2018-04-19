@@ -5,6 +5,7 @@
 !data
 !log
 !main.go
+!pusher
 !server
 !web
 web/node_modules
