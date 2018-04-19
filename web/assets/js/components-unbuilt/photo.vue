@@ -7,7 +7,7 @@
       <div class="d-inline-flex text-center">
         <div class="btn-group" role="group" v-bind:aria-label="'Photo ' + photo_id">
           <b-btn v-b-modal="'meta-' + photo_id" variant="primary">Metadata</b-btn>
-          <button type="button" class="btn btn-secondary">Tag</button>
+          <button type="button" v-on:click="add_tag" class="btn btn-secondary">Tag</button>
           <button type="button" v-on:click="delete_photo" class="btn btn-danger">Delete</button>
         </div>
       </div>
@@ -73,6 +73,21 @@
         this.$http.get('photos/' + this.photo_id + "/meta").then(function (response) {
           vue.mdata = response.data.photo
         });
+      },
+      add_tag: function() {
+        let vue = this;
+        bootbox.prompt("Enter tag", function (tag) {
+          if(tag !== null){
+            vue.$http.post('photos/' + vue.photo_id + "/tags/" + tag).then(
+              function (response) {
+                bootbox.alert("Tag '" + tag + "' added!");
+                vue.get_metadata();
+              }, function (response) {
+                bootbox.alert("Unable to add tag: " + tag);
+              }
+            )
+          }
+        })
       }
     },
     mounted: function () {
