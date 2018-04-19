@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"path"
-	"sync"
 
 	"github.com/micahwedemeyer/gphoto2go"
 
@@ -49,16 +48,13 @@ type gphoto2Camera interface {
 }
 
 // localCamera communicates with a local camera through libgphoto2.
-// All operations that interact with the gphoto2 camera are surrounded with a mutex.
 type localCamera struct {
-	m       *sync.Mutex
 	gphoto2 gphoto2Camera
 }
 
 // newLocalCamera creates a new localCamera with internal mutex.
 func newLocalCamera() *localCamera {
 	return &localCamera{
-		m:       &sync.Mutex{},
 		gphoto2: &gphoto2go.Camera{},
 	}
 }
@@ -117,9 +113,6 @@ func (c *localCamera) listFilenames() ([]string, error) {
 func (c *localCamera) getFile(filename string) ([]byte, error) {
 	folder := path.Dir(filename)
 	name := path.Base(filename)
-
-	c.m.Lock()
-	defer c.m.Unlock()
 
 	err := c.initCamera()
 	if err != nil {
