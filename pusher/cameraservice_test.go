@@ -44,7 +44,7 @@ func TestListFilenames(t *testing.T) {
 	gphoto2Camera := &mockGphoto2Camera{}
 	gphoto2Camera.On("Init").Return(0)
 	gphoto2Camera.On("RListFolders", "/").Return([]string{"testdir", "testdir2"})
-	gphoto2Camera.On("ListFiles", "testdir").Return([]string{"hello.JPG", "hello.NEF", "there.JPG"}, 0)
+	gphoto2Camera.On("ListFiles", "testdir").Return([]string{"hello.JPG", "there.JPG"}, 0)
 	gphoto2Camera.On("ListFiles", "testdir2").Return([]string{"haha.JPG"}, 0)
 	gphoto2Camera.On("Exit").Return(0)
 	c.gphoto2 = gphoto2Camera
@@ -53,20 +53,17 @@ func TestListFilenames(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if len(filenames) != 4 {
+	if len(filenames) != 3 {
 		t.Errorf("got %d filenames, expected 3", len(filenames))
 		return
 	}
 	if filenames[0] != "testdir/hello.JPG" {
 		t.Errorf("got unexpected filename: %s", filenames[0])
 	}
-	if filenames[1] != "testdir/hello.NEF" {
-		t.Errorf("got unexpected filename: %s", filenames[1])
-	}
-	if filenames[2] != "testdir/there.JPG" {
+	if filenames[1] != "testdir/there.JPG" {
 		t.Errorf("got unexpected filename: %s", filenames[2])
 	}
-	if filenames[3] != "testdir2/haha.JPG" {
+	if filenames[2] != "testdir2/haha.JPG" {
 		t.Errorf("got unexpected filename: %s", filenames[3])
 	}
 

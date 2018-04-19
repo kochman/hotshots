@@ -65,39 +65,6 @@ func TestGeneratePhotoID(t *testing.T) {
 	}
 }
 
-func TestGeneratePhotoIDsNotJPG(t *testing.T) {
-	cfg, err := config.New()
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-		return
-	}
-
-	p, err := New(cfg)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-		return
-	}
-
-	cameraService := &mockCameraService{}
-	cameraService.On("listFilenames").Return([]string{"hi.NEF", "there.CR2"}, nil)
-	p.cameraService = cameraService
-
-	p.generatePhotoIDs()
-
-	_, ok := p.filenameToPhotoID["hi.NEF"]
-	if ok {
-		t.Errorf("did not expect \"hi.NEF\" to have a photo ID")
-	}
-
-	_, ok = p.filenameToPhotoID["hi.CR2"]
-	if ok {
-		t.Errorf("did not expect \"hi.CR2\" to have a photo ID")
-	}
-
-	cameraService.AssertExpectations(t)
-	cameraService.AssertNumberOfCalls(t, "listFilenames", 1)
-}
-
 func TestGeneratePhotoIDs(t *testing.T) {
 	cfg, err := config.New()
 	if err != nil {

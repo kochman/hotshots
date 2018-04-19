@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"path"
+	"strings"
 
 	"github.com/micahwedemeyer/gphoto2go"
 
@@ -102,6 +103,11 @@ func (c *localCamera) listFilenames() ([]string, error) {
 			return filenames, &UnhandledError{msg: gphotoErr}
 		}
 		for _, file := range files {
+			// only transfer JPEGs
+			if strings.ToLower(path.Ext(file)) != ".jpg" {
+				continue
+			}
+
 			filename := path.Join(folder, file)
 			filenames = append(filenames, filename)
 		}

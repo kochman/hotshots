@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"fmt"
-	"path"
-	"strings"
 	"time"
 
 	"github.com/kochman/hotshots/config"
@@ -68,11 +66,6 @@ func (p *Pusher) uploadNewPhotos() {
 	}
 
 	for _, filename := range toUpload {
-		// only transfer JPEGs
-		if strings.ToLower(path.Ext(filename)) != ".jpg" {
-			continue
-		}
-
 		b, err := p.cameraService.getFile(filename)
 		if err != nil {
 			log.WithError(err).Error("unable to get file")
@@ -109,11 +102,6 @@ func (p *Pusher) generatePhotoIDs() {
 	}
 
 	for _, filename := range filenames {
-		// only transfer JPEGs
-		if strings.ToLower(path.Ext(filename)) != ".jpg" {
-			continue
-		}
-
 		// generate an ID for this photo if not exists
 		if _, ok := p.filenameToPhotoID[filename]; ok {
 			continue
