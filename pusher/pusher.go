@@ -49,7 +49,6 @@ func (p *Pusher) uploadNewPhotos() {
 		log.WithError(err).Error("unable to get existing photos")
 		return
 	}
-	log.Infof("%+v", photos)
 
 	toUpload := []string{}
 	for filename, id := range p.filenameToPhotoID {
@@ -63,6 +62,10 @@ func (p *Pusher) uploadNewPhotos() {
 		if !found {
 			toUpload = append(toUpload, filename)
 		}
+	}
+
+	if len(toUpload) > 0 {
+		log.Infof("%d existing photos on server, %d to upload", len(photos), len(toUpload))
 	}
 
 	for _, filename := range toUpload {
