@@ -2,7 +2,7 @@
   <div>
     <div class="col-4-lg mt-3 align-items-center text-center">
       <p><a v-bind:href="'photos/' + photo_id + '/image.jpg'">
-        <img v-bind:src="'photos/' + photo_id + '/thumb.jpg'" class="img-thumbnail">
+        <img v-bind:src="'photos/' + photo_id + '/thumb.jpg'" class="img-thumbnail" v-bind:style="{ transform: rotate_thumb() }">
       </a></p>
       <div class="d-inline-flex text-center">
         <div class="btn-group" role="group" v-bind:aria-label="'Photo ' + photo_id">
@@ -73,6 +73,18 @@
         this.$http.get('photos/' + this.photo_id + "/meta").then(function (response) {
           vue.mdata = response.data.photo
         });
+      },
+      rotate_thumb: function() {
+        let vue = this;
+        
+        var rotation = {
+          1: 'rotate(0deg)',
+          3: 'rotate(180deg)',
+          6: 'rotate(90deg)',
+          8: 'rotate(270deg)'
+        };
+        
+        return rotation[vue.mdata.orientation];
       },
       add_tag: function() {
         let vue = this;

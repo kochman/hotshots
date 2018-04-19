@@ -38,9 +38,10 @@ const (
 )
 
 var (
-	TagExists = errors.New("tag already exists")
+	TagExists   = errors.New("tag already exists")
 	TagNotExist = errors.New("tag does not exist")
 )
+
 /*
  * Data structs
  */
@@ -59,11 +60,12 @@ type ExifData interface {
 
 type Photo struct {
 	ID              string     `storm:"id" json:"id"`
-	Deleted         bool       `storm:"index" json:"deleted"`// CANNOT BE OMITTED IN JSON BECAUSE STORM
+	Deleted         bool       `storm:"index" json:"deleted"` // CANNOT BE OMITTED IN JSON BECAUSE STORM
 	UploadedAt      *time.Time `storm:"index" json:"uploaded_at"`
 	TakenAt         *time.Time `storm:"index" json:"taken_at"`
 	Width           int        `storm:"index" json:"width"`
 	Height          int        `storm:"index" json:"height"`
+	Orientation     int        `json:"orientation"`
 	Megapixels      float64    `storm:"index" json:"megapixels"`
 	Lat             float64    `json:"lat"`
 	Long            float64    `json:"long"`
@@ -122,6 +124,13 @@ func (p *Photo) AddMetadata(r *image.Rectangle, x ExifData) {
 		log.Info("unable to find model for ", p.ID)
 	} else {
 		p.CamModel = strings.TrimSuffix(string(cmodel.Val), "\u0000")
+	}
+
+	orientation, err := x.Get(exif.Orientation)
+	if err != nil {
+		log.Info("unable to find orientation for ", p.ID)
+	} else {
+		p.Orientation, _ = orientation.Int(0)
 	}
 
 	p.Width = r.Dx()
