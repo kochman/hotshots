@@ -70,6 +70,12 @@
 			"revisionTime": "2017-08-14T05:04:56Z"
 		},
 		{
+			"checksumSHA1": "3aPjsbAKCPtyTEVzfO43u7Tbuok=",
+			"path": "github.com/micahwedemeyer/gphoto2go",
+			"revision": "6a9613d10afbd63fbf60686808218b6bd5fa53eb",
+			"revisionTime": "2017-06-06T08:58:50Z"
+		},
+		{
 			"checksumSHA1": "r5eQHkttko6kxroDEENXbmXKrSs=",
 			"path": "github.com/nfnt/resize",
 			"revision": "891127d8d1b52734debe1b3c3d7e747502b6c366",

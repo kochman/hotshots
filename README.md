@@ -5,6 +5,8 @@ Hotshots automatically uploads photos from remote cameras to a server, allowing 
 
 ## Development
 
+You will need to install libgphoto2. On macOS with Homebrew, this can be done with `brew install libgphoto2`.
+
 ```
 go get github.com/kochman/hotshots
 go get -u github.com/kardianos/govendor
