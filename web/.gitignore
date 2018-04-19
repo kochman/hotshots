@@ -1,8 +1,5 @@
 /vendor/*/
-/hotshots
 /web/assets/js/components
 /web/assets/css
-/web/node_modules
+/hotshots
 .idea
-profile.out
-coverage.txt

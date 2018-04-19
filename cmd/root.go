@@ -9,7 +9,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "hotshots",
-	Short: "Hotshots uploads photos from remote cameras",
+	Short: "Hotshots uploads photos from remote cameras.",
 }
 
 func Execute() {

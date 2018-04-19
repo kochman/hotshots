@@ -6,3 +6,5 @@
 !log
 !main.go
 !server
+!web
+web/node_modules

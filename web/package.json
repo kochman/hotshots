@@ -1,0 +1,44 @@
+{
+  "name": "Hotshots",
+  "version": "0.0.0",
+  "description": "Curate photos from remote cameras.",
+  "scripts": {
+    "build": "npm run build-css && cross-env NODE_ENV=production webpack --progress --hide-modules",
+    "build-dev": "npm run build-css && cross-env NODE_ENV=development webpack --progress --hide-modules --watch",
+    "build-css": "node-sass assets/scss/ -o assets/css/",
+    "dev": "webpack-serve --port 8080 --host 0.0.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kochman/hotshots.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kochman/hotshots/issues"
+  },
+  "homepage": "https://github.com/kochman/hotshots",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "bootstrap": "^4.0.0",
+    "jquery": "^3.3.1",
+    "vue": "^2.5.16",
+    "vue-moment": "^3.2.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-stage-3": "^6.24.1",
+    "child_process": "^1.0.2",
+    "concurrently": "^3.5.1",
+    "cross-env": "^5.0.5",
+    "css-loader": "^0.28.7",
+    "file-loader": "^1.1.4",
+    "node-sass": "^4.7.2",
+    "vue-loader": "^13.0.5",
+    "vue-template-compiler": "^2.4.4",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.9.1",
+    "webpack-serve": "^0.2.0"
+  }
+}

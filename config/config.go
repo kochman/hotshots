@@ -1,8 +1,9 @@
 package config
 
 import (
-	"os"
 	"path"
+	"path/filepath"
+	"os"
 	"time"
 )
 
@@ -13,6 +14,7 @@ type Config struct {
 
 	// Where the server stores data
 	PhotosDirectory string
+	WebDirectory    string
 
 	// Where the pusher should expect to find the server
 	ServerURL string
@@ -30,14 +32,22 @@ func New() (*Config, error) {
 		RefreshInterval: 5 * time.Second,
 	}
 
-	dir, ok := os.LookupEnv("HOTSHOTS_DIR")
+	hotshotsDir, ok := os.LookupEnv("HOTSHOTS_DIR")
 	if ok {
-		c.PhotosDirectory = dir
+		c.PhotosDirectory = hotshotsDir
 	}
 
-	listen, ok := os.LookupEnv("HOTSHOTS_LISTEN_URL")
+	listenURL, ok := os.LookupEnv("HOTSHOTS_LISTEN_URL")
 	if ok {
-		c.ListenURL = listen
+		c.ListenURL = listenURL
+	}
+
+	webDir, ok := os.LookupEnv("HOTSHOTS_WEB_DIR")
+	if ok {
+		c.WebDirectory = webDir
+	} else {
+		webDir, _ = os.Getwd()
+		c.WebDirectory = filepath.Join(webDir, "web")
 	}
 
 	server, ok := os.LookupEnv("HOTSHOTS_SERVER_URL")
