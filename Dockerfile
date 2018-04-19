@@ -17,7 +17,8 @@ RUN go build
 FROM debian:stable as runner
 WORKDIR /root
 COPY --from=go-build /go/src/github.com/kochman/hotshots/hotshots .
-COPY --from=js-build /root ./web
+COPY --from=js-build /root/assets ./web/assets
+COPY --from=js-build /root/*.html ./web/
 ENV HOTSHOTS_LISTEN_URL 0.0.0.0:8000
 VOLUME /var/hotshots
 EXPOSE 8000/tcp
