@@ -37,7 +37,7 @@ func New(cfg *config.Config) (*Pusher, error) {
 
 // Run runs the Pusher's upload functionality in a loop forever.
 func (p *Pusher) Run() {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(p.cfg.RefreshInterval)
 	for range ticker.C {
 		p.uploadNewPhotos()
 	}

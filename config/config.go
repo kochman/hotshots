@@ -1,8 +1,12 @@
 package config
 
-import "os"
-import "path"
+import (
+	"os"
+	"path"
+	"time"
+)
 
+// Config contains Hotshots configuration.
 type Config struct {
 	// Where the server listens
 	ListenURL string
@@ -12,13 +16,18 @@ type Config struct {
 
 	// Where the pusher should expect to find the server
 	ServerURL string
+
+	// How often the Pusher should check for new photos on the camera
+	RefreshInterval time.Duration
 }
 
+// New reads from the environment to determine the configuration.
 func New() (*Config, error) {
 	c := &Config{
 		ListenURL:       "127.0.0.1:8000",
 		PhotosDirectory: "/var/hotshots",
 		ServerURL:       "http://127.0.0.1:8000",
+		RefreshInterval: 5 * time.Second,
 	}
 
 	dir, ok := os.LookupEnv("HOTSHOTS_DIR")
@@ -34,6 +43,15 @@ func New() (*Config, error) {
 	server, ok := os.LookupEnv("HOTSHOTS_SERVER_URL")
 	if ok {
 		c.ServerURL = server
+	}
+
+	refresh, ok := os.LookupEnv("HOTSHOTS_REFRESH_INTERVAL")
+	if ok {
+		duration, err := time.ParseDuration(refresh)
+		if err != nil {
+			return nil, err
+		}
+		c.RefreshInterval = duration
 	}
 
 	return c, nil
