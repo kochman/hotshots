@@ -16,6 +16,7 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
 	"golang.org/x/sys/unix"
+	"github.com/asdine/storm/q"
 )
 
 /*
@@ -35,6 +36,8 @@ type PhotoDB interface {
 	Init(data interface{}) error
 	One(fieldName string, value interface{}, to interface{}) error
 	Save(data interface{}) error
+	Select(machers ...q.Matcher) storm.Query
+	UpdateField(data interface{}, fieldName string, value interface{}) error
 	Update(data interface{}) error
 }
 
@@ -58,12 +61,19 @@ func New(cfg *config.Config) (*Server, error) {
 		router.Get("/ids", s.GetPhotoIDs)
 		router.Route("/{pid}", func(router chi.Router) {
 			router.Use(s.PhotoCtx)
+			router.Delete("/", s.DeletePhoto)
 			router.Get("/image.jpg", s.GetPhoto)
 			router.Get("/thumb.jpg", s.GetThumbnail)
 			router.Get("/meta", s.GetPhotoMetadata)
+			router.Route("/tags", func(router chi.Router) {
+				router.Route("/{tag}", func(router chi.Router) {
+					router.Use(s.TagCtx)
+					router.Post("/", s.PostTag)
+					router.Delete("/", s.DeleteTag)
+				})
+			})
 		})
 	})
-
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, cfg.WebDirectory+"/index.html")
