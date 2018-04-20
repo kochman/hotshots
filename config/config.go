@@ -1,9 +1,9 @@
 package config
 
 import (
+	"os"
 	"path"
 	"path/filepath"
-	"os"
 	"time"
 )
 
@@ -21,6 +21,9 @@ type Config struct {
 
 	// How often the Pusher should check for new photos on the camera
 	RefreshInterval time.Duration
+
+	// How long the Pusher can take to transfer a photo
+	UploadTimeout time.Duration
 }
 
 // New reads from the environment to determine the configuration.
@@ -30,6 +33,7 @@ func New() (*Config, error) {
 		PhotosDirectory: "/var/hotshots",
 		ServerURL:       "http://127.0.0.1:8000",
 		RefreshInterval: 5 * time.Second,
+		UploadTimeout:   15 * time.Second,
 	}
 
 	hotshotsDir, ok := os.LookupEnv("HOTSHOTS_DIR")
@@ -62,6 +66,15 @@ func New() (*Config, error) {
 			return nil, err
 		}
 		c.RefreshInterval = duration
+	}
+
+	uploadTimeout, ok := os.LookupEnv("HOTSHOTS_UPLOAD_TIMEOUT")
+	if ok {
+		duration, err := time.ParseDuration(uploadTimeout)
+		if err != nil {
+			return nil, err
+		}
+		c.UploadTimeout = duration
 	}
 
 	return c, nil
