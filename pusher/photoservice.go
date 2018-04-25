@@ -19,7 +19,9 @@ type photoService interface {
 }
 
 type remoteAPI struct {
-	url string
+	url      string
+	username string
+	password string
 }
 
 const photosEndpoint = "/photos"
@@ -43,6 +45,11 @@ func (r *remoteAPI) existingPhotos() ([]string, error) {
 			return []string{}, err
 		}
 
+		if len(r.username) > 0 || len(r.password) > 0 {
+			// HTTP basic auth
+			req.SetBasicAuth(r.username, r.password)
+		}
+
 		query := req.URL.Query()
 		query.Set("start", strconv.Itoa(start))
 		query.Set("limit", strconv.Itoa(limit))
@@ -51,6 +58,10 @@ func (r *remoteAPI) existingPhotos() ([]string, error) {
 		resp, err := c.Do(req)
 		if err != nil {
 			return []string{}, err
+		}
+
+		if resp.StatusCode == http.StatusUnauthorized {
+			return []string{}, errors.New("invalid authentication credentials")
 		}
 
 		var idsResp server.GetPhotoIDsResponse
@@ -98,6 +109,12 @@ func (r *remoteAPI) uploadPhoto(photo []byte) error {
 	if err != nil {
 		return err
 	}
+
+	if len(r.username) > 0 || len(r.password) > 0 {
+		// HTTP basic auth
+		req.SetBasicAuth(r.username, r.password)
+	}
+
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	resp, err := c.Do(req)
