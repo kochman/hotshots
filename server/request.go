@@ -129,7 +129,7 @@ func (s *Server) GetPhotos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var photos []Photo
-	query := s.db.Select(q.Eq("Status", ProcessingSucceeded), q.Eq("Deleted", deleted)).Skip(start).Limit(limit)
+	query := s.db.Select(q.Eq("Status", ProcessingSucceeded), q.Eq("Deleted", deleted)).Skip(start).Limit(limit).OrderBy("TakenAt")
 
 	if err := query.Find(&photos); err != nil && err != storm.ErrNotFound {
 		log.Error(err)
@@ -162,13 +162,24 @@ func (s *Server) GetPhotoIDs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tag, err := GetTag(r)
+	if err != nil {
+		log.Error(err)
+		WriteError("Unable to parse query string", 400, w)
+		return
+	}
+
 	var photos []Photo
 	dMatcher := q.Eq("Deleted", false)
+	tMatcher := q.NewFieldMatcher("Tags", &TagMatcher{tag})
 	var query storm.Query
 	if deleted {
-		query = s.db.Select(q.Eq("Status", ProcessingSucceeded)).Skip(start).Limit(limit)
+		query = s.db.Select(q.Eq("Status", ProcessingSucceeded)).Skip(start).Limit(limit).OrderBy("TakenAt")
+	} else if tag != "" {
+		query = s.db.Select(q.Eq("Status", ProcessingSucceeded), tMatcher, dMatcher).
+			Skip(start).Limit(limit).OrderBy("TakenAt")
 	} else {
-		query = s.db.Select(q.Eq("Status", ProcessingSucceeded), dMatcher).Skip(start).Limit(limit)
+		query = s.db.Select(q.Eq("Status", ProcessingSucceeded), dMatcher).Skip(start).Limit(limit).OrderBy("TakenAt")
 	}
 
 	if err := query.Find(&photos); err != nil && err != storm.ErrNotFound {

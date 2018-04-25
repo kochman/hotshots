@@ -7,10 +7,30 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"errors"
+	"strings"
+	"fmt"
 )
 const(
 	PageSize = 20
 )
+
+type TagMatcher struct {
+	tag string
+}
+
+func (m *TagMatcher) MatchField(v interface{}) (bool, error){
+	tags, ok := v.([]string)
+	if !ok {
+		return false, errors.New("failed to convert field")
+	}
+	for _, t := range tags {
+		if strings.EqualFold(m.tag, t) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
 
 func round(num float64) int {
 	return int(num + math.Copysign(0.5, num))
@@ -70,6 +90,15 @@ func GetDeleted(r *http.Request) (bool, error) {
 	}
 
 	return deleted, nil
+}
+
+func GetTag(r *http.Request) (string, error) {
+	tagStr := r.URL.Query().Get("tag")
+
+	if tagStr != "" {
+		return tagStr, nil
+	}
+	return "", errors.New("unable to get tag")
 }
 
 func WriteError(s string, status int, w http.ResponseWriter) {
