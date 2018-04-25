@@ -1,9 +1,9 @@
 package config
 
 import (
+	"os"
 	"path"
 	"path/filepath"
-	"os"
 	"time"
 )
 
@@ -21,6 +21,10 @@ type Config struct {
 
 	// How often the Pusher should check for new photos on the camera
 	RefreshInterval time.Duration
+
+	// Server/Pusher authentication
+	AuthUsername string
+	AuthPassword string
 }
 
 // New reads from the environment to determine the configuration.
@@ -62,6 +66,16 @@ func New() (*Config, error) {
 			return nil, err
 		}
 		c.RefreshInterval = duration
+	}
+
+	username, ok := os.LookupEnv("HOTSHOTS_USERNAME")
+	if ok {
+		c.AuthUsername = username
+	}
+
+	password, ok := os.LookupEnv("HOTSHOTS_PASSWORD")
+	if ok {
+		c.AuthPassword = password
 	}
 
 	return c, nil
