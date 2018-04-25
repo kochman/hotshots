@@ -7,7 +7,7 @@ import (
 
 func (s *Server) auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if len(s.cfg.AuthUsername) == 0 && len(s.cfg.AuthUsername) == 0 {
+		if len(s.cfg.AuthUsername) == 0 && len(s.cfg.AuthPassword) == 0 {
 			// Authentication is not configured
 			next.ServeHTTP(w, r)
 			return
