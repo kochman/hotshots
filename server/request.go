@@ -51,6 +51,12 @@ type PostTagResponse struct {
 	Tags    []string `json:"tags"`
 }
 
+type GetTagsResponse struct {
+	Success bool     `json:"success"`
+	ID      string   `json:"id"`
+	Tags    []string `json:"tags"`
+}
+
 type DeleteTagResponse struct {
 	Success bool     `json:"success"`
 	ID      string   `json:"id"`
@@ -379,6 +385,16 @@ func (s *Server) PostTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	WriteJsonResponse(&PostTagResponse{
+		Success: true,
+		ID: photo.ID,
+		Tags: photo.Tags,
+	}, 200, w)
+}
+
+func (s *Server) GetTags(w http.ResponseWriter, r *http.Request) {
+	photo := r.Context().Value("photo").(Photo)
+	
+	WriteJsonResponse(&GetTagsResponse{
 		Success: true,
 		ID: photo.ID,
 		Tags: photo.Tags,

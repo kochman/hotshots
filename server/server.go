@@ -68,6 +68,7 @@ func New(cfg *config.Config) (*Server, error) {
 			router.Get("/thumb.jpg", s.GetThumbnail)
 			router.Get("/meta", s.GetPhotoMetadata)
 			router.Route("/tags", func(router chi.Router) {
+				router.Get("/", s.GetTags)
 				router.Route("/{tag}", func(router chi.Router) {
 					router.Use(s.TagCtx)
 					router.Post("/", s.PostTag)
