@@ -13,7 +13,7 @@
       </div>
     </div>
     <b-modal v-model="show_metadata" size="lg" :ok-only=true title="Photo Metadata">
-      <table class="table">
+      <table class="table mx-0 my-0 py-0 px-0">
         <thead>
         <tr>
           <th scope="col" width="20%">Key</th>
@@ -23,12 +23,17 @@
         <tbody>
           <tr v-for="(value, key) in mdata">
             <td>{{ key }}</td>
-            <td>{{ value }}</td>
+            <td v-if="key==='tags'" class="my-0">
+              <ul>
+                <li class="py-1" v-for="tag in value">{{tag}}&nbsp;<b-btn size="sm" variant="danger" @click="delete_tag(tag)">X</b-btn></li>
+              </ul>
+            </td>
+            <td v-else>{{value}}</td>
           </tr>
         </tbody>
       </table>
       <div slot="modal-footer" class="w-100">
-        <b-btn size="sm" class="float-right" variant="primary" @click="show_metadata=false">
+        <b-btn class="float-right" variant="primary" @click="show_metadata=false">
           Close
         </b-btn>
       </div>
@@ -98,6 +103,14 @@
             this.tag = ""
           }.bind(this), function () {
             bootbox.alert("Unable to add tag: " + this.tag);
+          }.bind(this))
+      },
+      delete_tag: function(tag) {
+        this.$http.delete('photos/' + this.photo_id + "/tags/" + tag).then(
+          function () {
+            this.get_metadata();
+          }.bind(this), function () {
+            bootbox.alert("Unable to delete tag: " + tag);
           }.bind(this))
       }
     },
