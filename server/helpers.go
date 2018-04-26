@@ -2,15 +2,16 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
-	"errors"
-	"strings"
 )
-const(
+
+const (
 	PageSize = 20
 )
 
@@ -18,7 +19,7 @@ type TagMatcher struct {
 	tag string
 }
 
-func (m *TagMatcher) MatchField(v interface{}) (bool, error){
+func (m *TagMatcher) MatchField(v interface{}) (bool, error) {
 	tags, ok := v.([]string)
 	if !ok {
 		return false, errors.New("failed to convert field")
@@ -40,7 +41,7 @@ func toFixed(num float64, precision int) float64 {
 	return float64(round(num*output)) / output
 }
 
-func removeElement(list []string, loc int) []string{
+func removeElement(list []string, loc int) []string {
 	// Does not return in order
 	list[loc] = list[len(list)-1]
 	return list[:len(list)-1]

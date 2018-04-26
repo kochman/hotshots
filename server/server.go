@@ -10,13 +10,13 @@ import (
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/index"
+	"github.com/asdine/storm/q"
 	"github.com/go-chi/chi"
 	"github.com/kochman/hotshots/config"
 	"github.com/kochman/hotshots/log"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
 	"golang.org/x/sys/unix"
-	"github.com/asdine/storm/q"
 )
 
 /*
@@ -29,6 +29,12 @@ type Server struct {
 	timeout time.Duration
 }
 
+type PhotoQuery interface {
+	Skip(int) PhotoQuery
+	Limit(int) PhotoQuery
+	OrderBy(...string) PhotoQuery
+}
+
 type PhotoDB interface {
 	All(to interface{}, options ...func(*index.Options)) error
 	Count(data interface{}) (int, error)
@@ -37,7 +43,7 @@ type PhotoDB interface {
 	Init(data interface{}) error
 	One(fieldName string, value interface{}, to interface{}) error
 	Save(data interface{}) error
-	Select(machers ...q.Matcher) storm.Query
+	Select(matchers ...q.Matcher) storm.Query
 	UpdateField(data interface{}, fieldName string, value interface{}) error
 	Update(data interface{}) error
 }

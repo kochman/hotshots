@@ -9,9 +9,9 @@ import (
 	"path"
 
 	"github.com/asdine/storm"
+	"github.com/asdine/storm/q"
 	"github.com/go-chi/chi"
 	"github.com/kochman/hotshots/log"
-	"github.com/asdine/storm/q"
 	"reflect"
 )
 
@@ -381,8 +381,8 @@ func (s *Server) PostTag(w http.ResponseWriter, r *http.Request) {
 
 	WriteJsonResponse(&PostTagResponse{
 		Success: true,
-		ID: photo.ID,
-		Tags: photo.Tags,
+		ID:      photo.ID,
+		Tags:    photo.Tags,
 	}, 200, w)
 }
 
@@ -391,8 +391,8 @@ func (s *Server) GetTags(w http.ResponseWriter, r *http.Request) {
 
 	WriteJsonResponse(&GetTagsResponse{
 		Success: true,
-		ID: photo.ID,
-		Tags: photo.Tags,
+		ID:      photo.ID,
+		Tags:    photo.Tags,
 	}, 200, w)
 }
 
@@ -413,8 +413,8 @@ func (s *Server) DeleteTag(w http.ResponseWriter, r *http.Request) {
 
 	WriteJsonResponse(&DeleteTagResponse{
 		Success: true,
-		ID: photo.ID,
-		Tags: photo.Tags,
+		ID:      photo.ID,
+		Tags:    photo.Tags,
 	}, 200, w)
 }
 
@@ -431,8 +431,6 @@ func (s *Server) GetPages(w http.ResponseWriter, r *http.Request) {
 	WriteJsonResponse(&GetPagesResponse{
 		Success: true,
 		MaxPage: maxPage,
-		Photos: photos,
+		Photos:  photos,
 	}, 200, w)
 }
-
-

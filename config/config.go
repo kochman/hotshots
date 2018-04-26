@@ -1,9 +1,9 @@
 package config
 
 import (
+	"os"
 	"path"
 	"path/filepath"
-	"os"
 	"time"
 )
 

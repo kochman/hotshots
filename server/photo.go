@@ -38,9 +38,10 @@ const (
 )
 
 var (
-	TagExists = errors.New("tag already exists")
+	TagExists   = errors.New("tag already exists")
 	TagNotExist = errors.New("tag does not exist")
 )
+
 /*
  * Data structs
  */
@@ -59,7 +60,7 @@ type ExifData interface {
 
 type Photo struct {
 	ID              string     `storm:"id" json:"id"`
-	Deleted         bool       `storm:"index" json:"deleted"`// CANNOT BE OMITTED IN JSON BECAUSE STORM
+	Deleted         bool       `storm:"index" json:"deleted"` // CANNOT BE OMITTED IN JSON BECAUSE STORM
 	UploadedAt      *time.Time `storm:"index" json:"uploaded_at"`
 	TakenAt         *time.Time `storm:"index" json:"taken_at"`
 	Width           int        `storm:"index" json:"width"`
