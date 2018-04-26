@@ -48,10 +48,11 @@
     methods: {
       fetchAPIData: function () {
         let url;
+        let limit = 100000
         if (this.tag !== "") {
-          url = 'photos/ids?tag=' + this.tag
+          url = 'photos/ids?limit=' + this.limit + '&tag=' + this.tag
         } else {
-          url = 'photos/ids'
+          url = 'photos/ids?limit=' + this.limit
         }
         console.log(url);
         this.$http.get(url).then(function (response) {
