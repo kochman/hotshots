@@ -24,6 +24,10 @@ type Config struct {
 
 	// How long the Pusher can take to transfer a photo
 	UploadTimeout time.Duration
+
+	// Server/Pusher authentication
+	AuthUsername string
+	AuthPassword string
 }
 
 // New reads from the environment to determine the configuration.
@@ -75,6 +79,16 @@ func New() (*Config, error) {
 			return nil, err
 		}
 		c.UploadTimeout = duration
+	}
+
+	username, ok := os.LookupEnv("HOTSHOTS_USERNAME")
+	if ok {
+		c.AuthUsername = username
+	}
+
+	password, ok := os.LookupEnv("HOTSHOTS_PASSWORD")
+	if ok {
+		c.AuthPassword = password
 	}
 
 	return c, nil
