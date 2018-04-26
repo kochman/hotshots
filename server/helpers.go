@@ -25,7 +25,7 @@ func (m *TagMatcher) MatchField(v interface{}) (bool, error) {
 		return false, errors.New("failed to convert field")
 	}
 	for _, t := range tags {
-		if strings.EqualFold(m.tag, t) {
+		if strings.Contains(t, m.tag) {
 			return true, nil
 		}
 	}
