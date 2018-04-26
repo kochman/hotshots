@@ -6,13 +6,13 @@
       </a></p>
       <div class="d-inline-flex text-center">
         <div class="btn-group" role="group" v-bind:aria-label="'Photo ' + photo_id">
-          <b-btn @click="show=true" variant="primary">Metadata</b-btn>
-          <button type="button" v-on:click="add_tag" class="btn btn-secondary">Tag</button>
+          <b-btn @click="show_metadata=true" variant="primary">Metadata</b-btn>
+          <b-btn @click="show_addtag=true" variant="secondary">Add Tag</b-btn>
           <button type="button" v-on:click="delete_photo" class="btn btn-danger">Delete</button>
         </div>
       </div>
     </div>
-    <b-modal v-model="show" size="lg" :ok-only=true title="Photo Metadata">
+    <b-modal v-model="show_metadata" size="lg" :ok-only=true title="Photo Metadata">
       <table class="table">
         <thead>
         <tr>
@@ -28,10 +28,19 @@
         </tbody>
       </table>
       <div slot="modal-footer" class="w-100">
-        <b-btn size="sm" class="float-right" variant="primary" @click="show=false">
+        <b-btn size="sm" class="float-right" variant="primary" @click="show_metadata=false">
           Close
         </b-btn>
       </div>
+    </b-modal>
+    <b-modal v-model="show_addtag" size="lg" :ok-only=true title="Enter Tag" :hide-footer="true">
+      <form>
+        <input title="Tag" class="form-control" v-model="tag" v-on:keydown.prevent.enter="add_tag"/>
+        <span class="float-right mt-3">
+          <b-btn variant="primary" @click="add_tag">Add</b-btn>
+          <b-btn variant="danger" @click="show_addtag=false">Cancel</b-btn>
+        </span>
+      </form>
     </b-modal>
   </div>
 
@@ -52,7 +61,9 @@
     data(){
       return {
         mdata: {},
-        show: false
+        show_metadata: false,
+        show_addtag: false,
+        tag: "",
       }
     },
     props: [
@@ -68,7 +79,7 @@
               } else {
                 this.$emit('deleted')
               }
-            }.bind(this), function (response) {
+            }.bind(this), function () {
               bootbox.alert("Unable to delete photo.");
             }.bind(this))
           }
@@ -80,17 +91,14 @@
         }.bind(this));
       },
       add_tag: function() {
-        bootbox.prompt("Enter tag", function (tag) {
-          if(tag !== null){
-            this.$http.post('photos/' + this.photo_id + "/tags/" + tag).then(
-              function (response) {
-                this.get_metadata()
-              }.bind(this), function (response) {
-                bootbox.alert("Unable to add tag: " + tag);
-              }.bind(this)
-            )
-          }
-        }.bind(this))
+        this.$http.post('photos/' + this.photo_id + "/tags/" + this.tag).then(
+          function () {
+            this.get_metadata();
+            this.show_addtag = false;
+            this.tag = ""
+          }.bind(this), function () {
+            bootbox.alert("Unable to add tag: " + this.tag);
+          }.bind(this))
       }
     },
     mounted: function () {

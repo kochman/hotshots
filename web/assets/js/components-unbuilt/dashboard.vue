@@ -13,7 +13,7 @@
       </div>
       <div v-else class="row">
         <div v-for="photo_id in photo_ids" class="col-sm">
-          <photo :photo_id="photo_id" v-on:deleted="reload" />
+          <photo :photo_id="photo_id"/>
         </div>
       </div>
     </div>
@@ -58,9 +58,6 @@
           this.photo_ids = response.data.ids;
           this.is_loaded = true;
         }.bind(this));
-      },
-      reload: function (photos) {
-        this.fetchAPIData();
       }
     }
 
