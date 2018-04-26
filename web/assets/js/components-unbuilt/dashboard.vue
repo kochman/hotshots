@@ -13,7 +13,7 @@
       </div>
       <div v-else class="row">
         <div v-for="photo_id in photo_ids" class="col-sm">
-          <photo :photo_id="photo_id" v-on:deleted="fetchAPIData" />
+          <photo :photo_id="photo_id" v-on:deleted="reload" />
         </div>
       </div>
     </div>
@@ -24,7 +24,9 @@
   import Photo from "./photo";
 
   export default {
-    components: {Photo},
+    components: {
+      Photo
+    },
     data() {
       return {
         title: "Hotshots",
@@ -45,7 +47,6 @@
 
     methods: {
       fetchAPIData: function () {
-        console.log("Fetch");
         let url;
         if (this.tag !== "") {
           url = 'photos/ids?tag=' + this.tag
@@ -58,8 +59,8 @@
           this.is_loaded = true;
         }.bind(this));
       },
-      setPhotos: function (photos) {
-        console.log("TEST");
+      reload: function (photos) {
+        this.fetchAPIData();
       }
     }
 

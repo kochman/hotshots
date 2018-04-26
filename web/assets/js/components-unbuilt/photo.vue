@@ -6,13 +6,13 @@
       </a></p>
       <div class="d-inline-flex text-center">
         <div class="btn-group" role="group" v-bind:aria-label="'Photo ' + photo_id">
-          <b-btn v-b-modal="meta_id" variant="primary">Metadata</b-btn>
+          <b-btn @click="show=true" variant="primary">Metadata</b-btn>
           <button type="button" v-on:click="add_tag" class="btn btn-secondary">Tag</button>
           <button type="button" v-on:click="delete_photo" class="btn btn-danger">Delete</button>
         </div>
       </div>
     </div>
-    <b-modal v-bind:id="meta_id" size="lg" :ok-only=true title="Photo Metadata">
+    <b-modal v-model="show" size="lg" :ok-only=true title="Photo Metadata">
       <table class="table">
         <thead>
         <tr>
@@ -27,6 +27,11 @@
           </tr>
         </tbody>
       </table>
+      <div slot="modal-footer" class="w-100">
+        <b-btn size="sm" class="float-right" variant="primary" @click="show=false">
+          Close
+        </b-btn>
+      </div>
     </b-modal>
   </div>
 
@@ -46,12 +51,8 @@
     },
     data(){
       return {
-        mdata: {}
-      }
-    },
-    computed: {
-      meta_id: function () {
-        return "meta-" + this.photo_id
+        mdata: {},
+        show: false
       }
     },
     props: [
@@ -65,7 +66,7 @@
               if (!response.data.success) {
                 bootbox.alert("Unable to delete photo.");
               } else {
-                location.reload(true);
+                this.$emit('deleted')
               }
             }.bind(this), function (response) {
               bootbox.alert("Unable to delete photo.");
@@ -94,6 +95,11 @@
     },
     mounted: function () {
       this.get_metadata()
+    },
+    watch: {
+      photo_id: function (){
+        this.get_metadata()
+      }
     }
   }
 
