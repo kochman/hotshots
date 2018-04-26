@@ -10,6 +10,7 @@ import (
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/index"
+	"github.com/asdine/storm/q"
 	"github.com/go-chi/chi"
 	"github.com/kochman/hotshots/config"
 	"github.com/kochman/hotshots/log"
@@ -28,13 +29,22 @@ type Server struct {
 	timeout time.Duration
 }
 
+type PhotoQuery interface {
+	Skip(int) PhotoQuery
+	Limit(int) PhotoQuery
+	OrderBy(...string) PhotoQuery
+}
+
 type PhotoDB interface {
 	All(to interface{}, options ...func(*index.Options)) error
+	Count(data interface{}) (int, error)
 	DeleteStruct(data interface{}) error
 	Find(fieldName string, value interface{}, to interface{}, options ...func(q *index.Options)) error
 	Init(data interface{}) error
 	One(fieldName string, value interface{}, to interface{}) error
 	Save(data interface{}) error
+	Select(matchers ...q.Matcher) storm.Query
+	UpdateField(data interface{}, fieldName string, value interface{}) error
 	Update(data interface{}) error
 }
 
@@ -59,11 +69,21 @@ func New(cfg *config.Config) (*Server, error) {
 		router.Get("/", s.GetPhotos)
 		router.Post("/", s.PostPhoto)
 		router.Get("/ids", s.GetPhotoIDs)
+		router.Get("/pages", s.GetPages)
 		router.Route("/{pid}", func(router chi.Router) {
 			router.Use(s.PhotoCtx)
+			router.Delete("/", s.DeletePhoto)
 			router.Get("/image.jpg", s.GetPhoto)
 			router.Get("/thumb.jpg", s.GetThumbnail)
 			router.Get("/meta", s.GetPhotoMetadata)
+			router.Route("/tags", func(router chi.Router) {
+				router.Get("/", s.GetTags)
+				router.Route("/{tag}", func(router chi.Router) {
+					router.Use(s.TagCtx)
+					router.Post("/", s.PostTag)
+					router.Delete("/", s.DeleteTag)
+				})
+			})
 		})
 	})
 

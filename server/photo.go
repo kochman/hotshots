@@ -37,6 +37,11 @@ const (
 	ProcessingFailed    Status = iota
 )
 
+var (
+	TagExists   = errors.New("tag already exists")
+	TagNotExist = errors.New("tag does not exist")
+)
+
 /*
  * Data structs
  */
@@ -55,6 +60,7 @@ type ExifData interface {
 
 type Photo struct {
 	ID              string     `storm:"id" json:"id"`
+	Deleted         bool       `storm:"index" json:"deleted"` // CANNOT BE OMITTED IN JSON BECAUSE STORM
 	UploadedAt      *time.Time `storm:"index" json:"uploaded_at"`
 	TakenAt         *time.Time `storm:"index" json:"taken_at"`
 	Width           int        `storm:"index" json:"width"`
@@ -67,6 +73,19 @@ type Photo struct {
 	CamModel        string     `storm:"index" json:"cam_model"`
 	Status          Status     `storm:"index" json:"status"`
 	StatusUpdatedAt *time.Time `storm:"index" json:"status_updated_at"`
+	Tags            []string   `storm:"index" json:"tags"` // not performant, but I don't care
+}
+
+func NewPhoto(id string) Photo {
+	now := time.Now()
+	return Photo{
+		ID:              id,
+		Deleted:         false,
+		UploadedAt:      &now,
+		Status:          Processing,
+		StatusUpdatedAt: &now,
+	}
+
 }
 
 func (p *Photo) AddMetadata(r *image.Rectangle, x ExifData) {
@@ -115,6 +134,28 @@ func (p *Photo) UpdateStatus(status Status) {
 	p.Status = status
 	t := time.Now()
 	p.StatusUpdatedAt = &t
+}
+
+func (p *Photo) AddTag(tag string) error {
+	for _, t := range p.Tags {
+		if strings.EqualFold(t, tag) {
+			return TagExists
+		}
+	}
+
+	p.Tags = append(p.Tags, tag)
+	return nil
+}
+
+func (p *Photo) DeleteTag(tag string) error {
+	for loc, t := range p.Tags {
+		if strings.EqualFold(t, tag) {
+			p.Tags = removeElement(p.Tags, loc)
+			return nil
+		}
+	}
+
+	return TagNotExist
 }
 
 func ProcessPhoto(input io.Reader, id string, photoPath string, thumbPath string, timeout time.Duration) (*exif.Exif, *image.Rectangle, error) {

@@ -54,6 +54,7 @@ func (r *remoteAPI) existingPhotos() ([]string, error) {
 		query := req.URL.Query()
 		query.Set("start", strconv.Itoa(start))
 		query.Set("limit", strconv.Itoa(limit))
+		query.Set("deleted", strconv.FormatBool(true))
 		req.URL.RawQuery = query.Encode()
 
 		resp, err := c.Do(req)

@@ -14,7 +14,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/asdine/storm"
 	"github.com/asdine/storm/index"
+	"github.com/asdine/storm/q"
 	"github.com/go-chi/chi"
 	"github.com/kochman/hotshots/config"
 	"github.com/stretchr/testify/assert"
@@ -29,6 +31,10 @@ type MockDB struct {
 func (db *MockDB) All(to interface{}, options ...func(*index.Options)) error {
 	args := db.Called(to, options)
 	return args.Error(0)
+}
+func (db *MockDB) Count(data interface{}) (int, error) {
+	args := db.Called(data)
+	return args.Int(0), args.Error(1)
 }
 
 func (db *MockDB) DeleteStruct(data interface{}) error {
@@ -56,8 +62,18 @@ func (db *MockDB) Save(data interface{}) error {
 	return args.Error(0)
 }
 
+func (db *MockDB) Select(matchers ...q.Matcher) storm.Query {
+	args := db.Called(matchers)
+	return args.Get(0).(storm.Query)
+}
+
 func (db *MockDB) Update(data interface{}) error {
 	args := db.Called(data)
+	return args.Error(0)
+}
+
+func (db *MockDB) UpdateField(data interface{}, fieldName string, value interface{}) error {
+	args := db.Called(data, fieldName, value)
 	return args.Error(0)
 }
 
@@ -150,7 +166,7 @@ func TestWriteJsonResponse(t *testing.T) {
 	assert.EqualValues(t, w.Code, 500)
 }
 
-func prepareMockServer(t *testing.T) (Server, *MockDB) {
+func prepareMockServer(t *testing.T) (Server, *MockDB, *MockQuery) {
 	dir, err := ioutil.TempDir("", "hotshot")
 	require.Nil(t, err)
 
@@ -165,16 +181,22 @@ func prepareMockServer(t *testing.T) (Server, *MockDB) {
 		PhotosDirectory: dir,
 	}
 	db := MockDB{}
+	qu := MockQuery{}
+
+	qu.On("Skip", mock.Anything).Return(&qu)
+	qu.On("Limit", mock.Anything).Return(&qu)
+	qu.On("OrderBy", mock.Anything).Return(&qu)
+
 	return Server{
 		cfg:     cfg,
 		db:      &db,
 		handler: nil,
 		timeout: 2 * time.Minute,
-	}, &db
+	}, &db, &qu
 }
 
 func TestGetPhotoFromDatabase(t *testing.T) {
-	s, db := prepareMockServer(t)
+	s, db, _ := prepareMockServer(t)
 
 	db.On("One", "ID", "valid", mock.Anything).Run(func(args mock.Arguments) {
 		p := args.Get(2).(*Photo)
@@ -196,7 +218,7 @@ func TestGetPhotoFromDatabase(t *testing.T) {
 }
 
 func TestPhotoCtx(t *testing.T) {
-	s, db := prepareMockServer(t)
+	s, db, _ := prepareMockServer(t)
 
 	db.On("One", "ID", "valid", mock.Anything).Run(func(args mock.Arguments) {
 		p := args.Get(2).(*Photo)
@@ -229,10 +251,11 @@ func TestPhotoCtx(t *testing.T) {
 }
 
 func TestGetPhotos(t *testing.T) {
-	s, db := prepareMockServer(t)
+	s, db, qu := prepareMockServer(t)
 
-	db.On("Find", "Status", ProcessingSucceeded, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-		p := args.Get(2).(*[]Photo)
+	db.On("Select", mock.Anything, mock.Anything).Return(qu)
+	qu.On("Find", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		p := args.Get(0).(*[]Photo)
 		*p = append(*p, Photo{ID: "1234"})
 		*p = append(*p, Photo{ID: "5678"})
 	}).Return(nil)
@@ -241,7 +264,7 @@ func TestGetPhotos(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	s.GetPhotos(w, r)
-	db.AssertNumberOfCalls(t, "Find", 1)
+	qu.AssertNumberOfCalls(t, "Find", 1)
 	require.EqualValues(t, w.Code, 200)
 
 	var v GetPhotosResponse
@@ -255,10 +278,11 @@ func TestGetPhotos(t *testing.T) {
 }
 
 func TestGetPhotoIDs(t *testing.T) {
-	s, db := prepareMockServer(t)
+	s, db, qu := prepareMockServer(t)
 
-	db.On("Find", "Status", ProcessingSucceeded, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
-		p := args.Get(2).(*[]Photo)
+	db.On("Select", mock.Anything, mock.Anything).Return(qu)
+	qu.On("Find", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		p := args.Get(0).(*[]Photo)
 		*p = append(*p, Photo{ID: "1234"})
 		*p = append(*p, Photo{ID: "5678"})
 	}).Return(nil)
@@ -267,7 +291,7 @@ func TestGetPhotoIDs(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	s.GetPhotoIDs(w, r)
-	db.AssertNumberOfCalls(t, "Find", 1)
+	qu.AssertNumberOfCalls(t, "Find", 1)
 	require.EqualValues(t, w.Code, 200)
 
 	var v GetPhotoIDsResponse
@@ -281,7 +305,7 @@ func TestGetPhotoIDs(t *testing.T) {
 }
 
 func TestPostPhoto(t *testing.T) {
-	s, _ := prepareMockServer(t)
+	s, _, _ := prepareMockServer(t)
 
 	// Photo value not filled
 	r := httptest.NewRequest("", "/", new(bytes.Reader))
@@ -305,7 +329,7 @@ func TestPostPhoto(t *testing.T) {
 }
 
 func TestGetPhotoMetadata(t *testing.T) {
-	s, _ := prepareMockServer(t)
+	s, _, _ := prepareMockServer(t)
 
 	r := MockPhotoCtx(Photo{ID: "1234"})
 	w := httptest.NewRecorder()
@@ -322,7 +346,7 @@ func TestGetPhotoMetadata(t *testing.T) {
 }
 
 func TestGetImage(t *testing.T) {
-	s, _ := prepareMockServer(t)
+	s, _, _ := prepareMockServer(t)
 
 	func() {
 		validImage, err := os.Open("_testdata/validFile.jpg")
