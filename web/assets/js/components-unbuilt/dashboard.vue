@@ -2,7 +2,10 @@
   <!--START CARD-->
   <div class="container">
     <h1 class="display-4 my-3">Your Photos</h1>
-    <p class="lead">Photos will automatically appear as they're taken and processed.</p>
+    <div class="lead d-flex justify-content-between">
+      <p>Photos will automatically appear as they're taken and processed.</p>
+      <input title="Tag" aria-label="Tag" v-model="tag" v-on:keyup="fetchAPIData"/>
+    </div>
     <hr class="my-4">
     <div class="container">
       <div v-if="!is_loaded" class="row">
@@ -10,7 +13,7 @@
       </div>
       <div v-else class="row">
         <div v-for="photo_id in photo_ids" class="col-sm">
-          <photo :photo_id="photo_id" />
+          <photo :photo_id="photo_id" v-on:deleted="fetchAPIData" />
         </div>
       </div>
     </div>
@@ -26,27 +29,34 @@
       return {
         title: "Hotshots",
         is_loaded: false,
-        photo_ids: []
+        photo_ids: [],
+        tag: "",
+        interval: null
       };
     },
 
     mounted: function () {
       this.fetchAPIData();
+
+      this.interval = setInterval(function (){
+        this.fetchAPIData()
+      }.bind(this), 5000)
     },
 
     methods: {
       fetchAPIData: function () {
-        var vue = this;
-        var interval = 1000; // 1000 = 1 second, 3000 = 3 seconds
-        function doAjax() {
-          vue.$http.get('photos/ids').then(function (response) {
-            vue.photo_ids = response.data.ids;
-            vue.is_loaded = true;
-            setTimeout(doAjax, interval);
-          })
+        console.log("Fetch");
+        let url;
+        if (this.tag !== "") {
+          url = 'photos/ids?tag=' + this.tag
+        } else {
+          url = 'photos/ids'
         }
-
-        doAjax()
+        console.log(url);
+        this.$http.get(url).then(function (response) {
+          this.photo_ids = response.data.ids;
+          this.is_loaded = true;
+        }.bind(this));
       },
       setPhotos: function (photos) {
         console.log("TEST");

@@ -6,13 +6,13 @@
       </a></p>
       <div class="d-inline-flex text-center">
         <div class="btn-group" role="group" v-bind:aria-label="'Photo ' + photo_id">
-          <b-btn v-b-modal="'meta-' + photo_id" variant="primary">Metadata</b-btn>
+          <b-btn v-b-modal="meta_id" variant="primary">Metadata</b-btn>
           <button type="button" v-on:click="add_tag" class="btn btn-secondary">Tag</button>
           <button type="button" v-on:click="delete_photo" class="btn btn-danger">Delete</button>
         </div>
       </div>
     </div>
-    <b-modal v-bind:id="'meta-' + photo_id" size="lg" title="Photo Metadata">
+    <b-modal v-bind:id="meta_id" size="lg" :ok-only=true title="Photo Metadata">
       <table class="table">
         <thead>
         <tr>
@@ -49,45 +49,47 @@
         mdata: {}
       }
     },
+    computed: {
+      meta_id: function () {
+        return "meta-" + this.photo_id
+      }
+    },
     props: [
       "photo_id",
     ],
     methods: {
       delete_photo: function () {
-        let vue = this;
         bootbox.confirm("Do you want to delete this photo?", function (confirmed) {
           if (confirmed) {
-            vue.$http.delete('photos/' + vue.photo_id).then(function (response) {
+            this.$http.delete('photos/' + this.photo_id).then(function (response) {
               if (!response.data.success) {
                 bootbox.alert("Unable to delete photo.");
               } else {
-                location.reload();
+                location.reload(true);
               }
-            }, function (response) {
+            }.bind(this), function (response) {
               bootbox.alert("Unable to delete photo.");
-            })
+            }.bind(this))
           }
-        })
+        }.bind(this))
       },
       get_metadata: function() {
-        let vue = this
         this.$http.get('photos/' + this.photo_id + "/meta").then(function (response) {
-          vue.mdata = response.data.photo
-        });
+          this.mdata = response.data.photo
+        }.bind(this));
       },
       add_tag: function() {
-        let vue = this;
         bootbox.prompt("Enter tag", function (tag) {
           if(tag !== null){
-            vue.$http.post('photos/' + vue.photo_id + "/tags/" + tag).then(
+            this.$http.post('photos/' + this.photo_id + "/tags/" + tag).then(
               function (response) {
-                location.reload();
-              }, function (response) {
+                this.get_metadata()
+              }.bind(this), function (response) {
                 bootbox.alert("Unable to add tag: " + tag);
-              }
+              }.bind(this)
             )
           }
-        })
+        }.bind(this))
       }
     },
     mounted: function () {

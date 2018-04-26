@@ -168,12 +168,7 @@ func (s *Server) GetPhotoIDs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tag, err := GetTag(r)
-	if err != nil {
-		log.Error(err)
-		WriteError("Unable to parse query string", 400, w)
-		return
-	}
+	tag := GetTag(r)
 
 	var photos []Photo
 	dMatcher := q.Eq("Deleted", false)
@@ -393,7 +388,7 @@ func (s *Server) PostTag(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) GetTags(w http.ResponseWriter, r *http.Request) {
 	photo := r.Context().Value("photo").(Photo)
-	
+
 	WriteJsonResponse(&GetTagsResponse{
 		Success: true,
 		ID: photo.ID,

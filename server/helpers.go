@@ -9,7 +9,6 @@ import (
 	"time"
 	"errors"
 	"strings"
-	"fmt"
 )
 const(
 	PageSize = 20
@@ -92,13 +91,8 @@ func GetDeleted(r *http.Request) (bool, error) {
 	return deleted, nil
 }
 
-func GetTag(r *http.Request) (string, error) {
-	tagStr := r.URL.Query().Get("tag")
-
-	if tagStr != "" {
-		return tagStr, nil
-	}
-	return "", errors.New("unable to get tag")
+func GetTag(r *http.Request) string {
+	return r.URL.Query().Get("tag")
 }
 
 func WriteError(s string, status int, w http.ResponseWriter) {
