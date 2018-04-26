@@ -181,7 +181,7 @@ func prepareMockServer(t *testing.T) (Server, *MockDB, *MockQuery) {
 		PhotosDirectory: dir,
 	}
 	db := MockDB{}
-	qu :=  MockQuery{}
+	qu := MockQuery{}
 
 	qu.On("Skip", mock.Anything).Return(&qu)
 	qu.On("Limit", mock.Anything).Return(&qu)
@@ -287,7 +287,6 @@ func TestGetPhotoIDs(t *testing.T) {
 		*p = append(*p, Photo{ID: "5678"})
 	}).Return(nil)
 
-
 	r := httptest.NewRequest("", "/", new(bytes.Reader))
 	w := httptest.NewRecorder()
 
@@ -330,7 +329,7 @@ func TestPostPhoto(t *testing.T) {
 }
 
 func TestGetPhotoMetadata(t *testing.T) {
-	s, _, _  := prepareMockServer(t)
+	s, _, _ := prepareMockServer(t)
 
 	r := MockPhotoCtx(Photo{ID: "1234"})
 	w := httptest.NewRecorder()
