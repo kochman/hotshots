@@ -26,7 +26,10 @@ func New(cfg *config.Config) (*Pusher, error) {
 		cameraService:     newLocalCamera(),
 		filenameToPhotoID: map[string]string{},
 		photoService: &remoteAPI{
-			url: cfg.ServerURL,
+			url:           cfg.ServerURL,
+			uploadTimeout: cfg.UploadTimeout,
+			username:      cfg.AuthUsername,
+			password:      cfg.AuthPassword,
 		},
 	}
 

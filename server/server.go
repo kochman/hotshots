@@ -60,6 +60,9 @@ func New(cfg *config.Config) (*Server, error) {
 
 	router := chi.NewRouter()
 
+	// HTTP basic auth
+	router.Use(s.auth)
+
 	// Route everything else
 	router.NotFound(NotFound)
 	router.Route("/photos", func(router chi.Router) {
@@ -153,7 +156,6 @@ func CanAccessDirectory(serv *Server) bool {
 }
 
 func (s *Server) Run() {
-
 	if err := http.ListenAndServe(s.cfg.ListenURL, s.handler); err != nil {
 		log.WithError(err).Error("unable to serve")
 	}
