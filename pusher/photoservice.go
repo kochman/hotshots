@@ -19,9 +19,10 @@ type photoService interface {
 }
 
 type remoteAPI struct {
-	url      string
-	username string
-	password string
+	url           string
+	uploadTimeout time.Duration
+	username      string
+	password      string
 }
 
 const photosEndpoint = "/photos"
@@ -85,7 +86,7 @@ func (r *remoteAPI) existingPhotos() ([]string, error) {
 // uploadPhoto uploads a photo to the remote server.
 func (r *remoteAPI) uploadPhoto(photo []byte) error {
 	c := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: r.uploadTimeout,
 	}
 
 	buf := bytes.Buffer{}
